@@ -18,7 +18,9 @@ describe('考試流程：報價 → 訂單 → 變更 → 轉請購 → 採購 �
     // 報價
     const q = blankQuote(db, D)
     q.customer = '1107'
-    q.lines = [{ seq: '', item: '900004', name: '相機外掛麥克風組', spec: '通用', unit: '組', qty: 50, price: 1200, amount: 0, remark: '' }]
+    q.lines = [{ seq: '', item: '900004', name: '相機外掛麥克風組', spec: '通用', unit: '組', qty: 50, price: 1200, amount: 0, remark: '', shipDate: '', effDate: D, expDate: '2026/11/01' }]
+    expect(() => saveDoc(structuredClone(db), 'quote', q, true, 'admin')).toThrow('失效日不可早於生效日')
+    q.lines[0].expDate = '2026/12/31'
     saveDoc(db, 'quote', q, true, 'admin')
     expect(q.no).toBe('202611001')
     expect(() => quoteToOrder(db, 'C211', q.no, blankOrder(db, D))).toThrow('尚未確認')

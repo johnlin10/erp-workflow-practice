@@ -61,7 +61,10 @@ const src = { srcType: str, srcNo: str, srcSeq: str }
 const lineBase = { seq: str, item: str, name: str, spec: str, unit: str, qty: num, price: num, amount: num }
 const money = { currency: str, rate: num, taxCode: str, taxType: str, taxRate: num, payTerm: str }
 
-export const QuoteLine = z.object({ ...lineBase, remark: str })
+export const QuoteLine = z.object({
+  ...lineBase, remark: str,
+  shipDate: str.default(''), effDate: str.default(''), expDate: str.default(''), // 預計出貨日、生效日、失效日（舊資料沒有）
+})
 export const Quote = z.object({
   ...docBase, ...money, customer: str, sales: str,
   quoteDate: str, customerConfirmed: bool, priceTerm: str,

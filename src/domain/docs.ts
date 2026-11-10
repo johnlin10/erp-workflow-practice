@@ -91,6 +91,12 @@ export function saveDoc<K extends DocKind>(draft: DB, kind: K, doc: KindMap[K], 
   if ('supplier' in d && !draft.suppliers.some(s => s.id === d.supplier)) fail(`供應廠商 ${d.supplier || '(空白)'} 不存在`)
   if ('plant' in d && !draft.plants.some(p => p.id === d.plant)) fail(`廠別 ${d.plant || '(空白)'} 不存在`)
   if ('currency' in d && !draft.currencies.some(c => c.id === d.currency)) fail(`幣別 ${d.currency || '(空白)'} 不存在`)
+  if (kind === 'quote') (d as Quote).lines.forEach((l, i) => {
+    if (!isDate(l.effDate)) fail(`第 ${i + 1} 筆單身：請輸入生效日`)
+    if (l.expDate && !isDate(l.expDate)) fail(`第 ${i + 1} 筆單身：失效日格式錯誤`)
+    if (l.expDate && l.expDate < l.effDate) fail(`第 ${i + 1} 筆單身：失效日不可早於生效日`)
+    if (l.shipDate && !isDate(l.shipDate)) fail(`第 ${i + 1} 筆單身：預計出貨日格式錯誤`)
+  })
   if (kind === 'order') (d as Order).lines.forEach((l, i) => { if (!isDate(l.dueDate)) fail(`第 ${i + 1} 筆單身：預交日格式錯誤`) })
   if (kind === 'receipt') (d as Receipt).lines.forEach((l, i) => {
     if (l.accepted < 0 || l.accepted > l.qty) fail(`第 ${i + 1} 筆單身：驗收數量必須介於 0 與進貨數量之間`)
@@ -277,7 +283,7 @@ export function quoteToOrder(db: DB, type: string, no: string, order: Order): Or
     srcType: q.type, srcNo: q.no,
     lines: q.lines.map(l => ({
       seq: l.seq, item: l.item, name: l.name, spec: l.spec, unit: l.unit, qty: l.qty, price: l.price, amount: l.amount,
-      warehouse: db.items.find(i => i.id === l.item)?.mainWarehouse ?? '', dueDate: addDays(order.date, 7),
+      warehouse: db.items.find(i => i.id === l.item)?.mainWarehouse ?? '', dueDate: l.shipDate || addDays(order.date, 7),
       delivered: 0, closed: false, remark: l.remark, srcType: q.type, srcNo: q.no, srcSeq: l.seq,
     })),
   }

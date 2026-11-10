@@ -39,9 +39,11 @@ const quoteCfg: DocConfig = {
     return k === 'date' ? { ...r, quoteDate: r.date } : r
   },
   lines: {
-    cols: [C.seq, { k: '_bizItem', label: '業務品號', w: 120, ro: true, show: () => '' }, C.item, C.name, C.spec, C.qty('數量'), C.unit, C.price('單價'), C.amount('金額'), C.remark],
-    blank: () => ({ seq: '', item: '', name: '', spec: '', unit: '', qty: 0, price: 0, amount: 0, remark: '' }),
-    onChange: lineChange('price'),
+    cols: [C.seq, { k: '_bizItem', label: '業務品號', w: 120, ro: true, show: () => '' }, C.item, C.name, C.spec, C.qty('數量'), C.unit, C.price('單價'), C.amount('金額'),
+      C.date('shipDate', '預計出貨日'), { ...C.date('effDate', '生效日'), req: true }, C.date('expDate', '失效日'), C.remark],
+    blank: () => ({ seq: '', item: '', name: '', spec: '', unit: '', qty: 0, price: 0, amount: 0, remark: '', shipDate: '', effDate: '', expDate: '' }),
+    // 選了品號後，生效日先帶單據日期
+    onChange: lineChange('price', (l, k, _db, rec) => (k === 'item' && l.item && !l.effDate ? { ...l, effDate: rec.date } : l)),
   },
   totals: docTotals(['報價金額', '稅額', '合計']),
   browse: [['報價單別', r => r.type], ['報價單號', r => r.no], ['單據日期', r => r.date], ['客戶代號', r => r.customer], ['客戶簡稱', (r, db) => names.customer(db, r.customer)], ['確認碼', r => r.status]],
