@@ -15,9 +15,12 @@ function load(): DB {
     if (!raw) return seed()
     const r = DBSchema.safeParse(JSON.parse(raw))
     if (r.success) {
-      // 預設資料後來新增的廠商，補進舊的練習資料裡（已有的代號不動）
-      const have = new Set(r.data.suppliers.map(s => s.id))
-      r.data.suppliers.push(...seed().suppliers.filter(s => !have.has(s.id)))
+      // 預設資料後來新增的廠商、客戶、品號，補進舊的練習資料裡（已有的代號不動）
+      const base = seed()
+      for (const k of ['suppliers', 'customers', 'items'] as const) {
+        const have = new Set(r.data[k].map(x => x.id))
+        ;(r.data[k] as { id: string }[]).push(...base[k].filter(x => !have.has(x.id)))
+      }
       return r.data
     }
     localStorage.setItem(KEY + ':broken', raw)

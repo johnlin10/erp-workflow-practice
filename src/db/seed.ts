@@ -1,15 +1,15 @@
 import type { DB, Item, Supplier, Customer } from './schema'
 
 // 預設資料：依課堂截圖建立。截圖看不到的值（單價、主供應商、庫別名稱）是推測的。
-const item = (id: string, name: string, spec: string, unit: string, mainSupplier: string, price: number, cost: number): Item =>
-  ({ id, name, spec, unit, mainWarehouse: 'P003', mainSupplier, leadDays: 7, price, cost, remark: '', acct: '1' })
+const item = (id: string, name: string, spec: string, unit: string, mainSupplier: string, price: number, cost: number, mainWarehouse = 'P003', acct = '1'): Item =>
+  ({ id, name, spec, unit, mainWarehouse, mainSupplier, leadDays: 7, price, cost, remark: '', acct })
 
 const sup = (id: string, short: string, tel = '', contact = '', taxId = '', name = short): Supplier =>
   ({ id, short, name, tel, contact, taxId, currency: 'NTD', payTerm: '' })
 
-const cust = (id: string, short: string, name: string, creditLimit: number): Customer => ({
+const cust = (id: string, short: string, name: string, creditLimit: number, more: Partial<Customer> = {}): Customer => ({
   id, short, name, enName: '', owner: '', contact: '', tel: '', fax: '', email: '', taxId: '',
-  currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '201', dept: '', creditLimit, address: '',
+  currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '201', dept: '', creditLimit, address: '', ...more,
 })
 
 export function seed(): DB {
@@ -54,10 +54,23 @@ export function seed(): DB {
       item('610003', '數位相機-類單眼SX740型', '40倍光學對焦+內建WIFI 4K UHD', '台', '1007', 15000, 11000),
       item('900004', '相機外掛麥克風組', '通用', '組', '1202', 1200, 700),
       item('0307-01', '主機外殼', '黑色', '個', '1009', 300, 150),
+      // 以下品號取自同學的專案（見下方廠商資料的註解）；主供應商原資料沒有，W01 主原料庫對應到 P001
+      item('410004', '數位相機-專業型', 'SL系列', '台', '', 15000, 12000, 'P003', '05'),
+      item('800001', 'AI 智能磁吸補光燈', '雙色溫高顯色補光配件', '個', '', 990, 650, 'P001', '1201'),
+      item('800002', '多功能手持延長自拍桿', '內建三腳架 1/4螺孔', '支', '', 750, 450, 'P001', '1201'),
+      item('900001', '三腳架', '輕量鋁合金可折疊', '台', '', 1200, 15000, 'P003', '1201'),
+      item('900002', '充電器', '雙插槽智能快充座', '台', '', 990, 11000, 'P003', '1201'),
+      item('900003', '拭鏡布-防靜電', '超細纖維抗靜電擦拭布', '台', '', 100, 8500, 'P003', '1201'),
+      item('900006', 'Insta360 Flow 2 Pro / Flow 2', '全功能 AI 三軸手機穩定器', '台', '', 0, 0, 'P003', '05'),
     ],
     customers: [
-      cust('1002', '標竿公司', '標竿股份有限公司', 0),
+      // 1002 和 1001、1003、1004、1109 取自同學的專案；1107 代號相同但公司不同，保留課堂截圖的資料
+      cust('1001', '宏碁科技', '宏碁股份有限公司', 5000000, { enName: 'Acer Inc.', owner: '陳俊聖', contact: '林小姐', tel: '02-26961234', fax: '02-26965678', email: 'service@acer.com', taxId: '04283908' }),
+      cust('1002', '標竿公司', '標竿精密科技股份有限公司', 5000000, { enName: 'ASUSTeK Computer Inc.', owner: '黃董事長', contact: '黃經理', tel: '02-28943447', fax: '02-28943448', email: 'info@asus.com', taxId: '53829104' }),
+      cust('1003', '微星科技', '微星科技股份有限公司', 5000000, { enName: 'Micro-Star International Co., Ltd.', owner: '徐祥', contact: '吳課長', tel: '02-32345599', fax: '02-32345598', email: 'sales@msi.com', taxId: '22538772' }),
+      cust('1004', '聯強國際', '聯強國際股份有限公司', 5000000, { enName: 'Synnex Technology International Corp.', owner: '杜書伍', contact: '王專員', tel: '02-25063320', fax: '02-25063321', email: 'synnex@synnex.com.tw', taxId: '22754898' }),
       cust('1107', '上奇有限公司', '上奇有限公司', 0),
+      cust('1109', '上奇科技', '上奇科技股份有限公司', 5000000, { enName: 'GrandTech Cloud Services Inc.', owner: '張雲飛', contact: '陳志明', tel: '02-87923001', fax: '02-87923002', email: 'contact@grandtech.com.tw', taxId: '84149615' }),
     ],
     suppliers: [
       // 廠商資料取自同學的專案 tailing-cloud/workflow-erp-conductor（MIT 授權）的 default_seeds.json

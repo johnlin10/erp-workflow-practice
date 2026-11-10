@@ -61,7 +61,14 @@
 
 ## 資料來源
 
-預設的廠商資料（27 筆）取自同學的專案 [tailing-cloud/workflow-erp-conductor](https://github.com/tailing-cloud/workflow-erp-conductor)（MIT 授權）。已經在用的瀏覽器資料，重新整理後會自動補上缺少的廠商。
+以下預設資料取自同學的專案 [tailing-cloud/workflow-erp-conductor](https://github.com/tailing-cloud/workflow-erp-conductor)（MIT 授權）：
+
+- 廠商 27 筆
+- 客戶 1001、1002、1003、1004、1109
+- 品號 410004、800001、800002、900001、900002、900003、900006（原資料沒有主供應商；庫別 W01 對應到 P001 原料倉）
+
+代號相同但內容不同的（客戶 1107、品號 900004、410001），保留依課堂截圖建立的資料，因為考試流程會用到。
+已經在用的瀏覽器資料，重新整理後會自動補上缺少的廠商、客戶、品號，已有的資料不會被改動。
 
 ## 開發
 
