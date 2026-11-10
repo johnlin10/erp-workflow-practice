@@ -21,6 +21,7 @@ function load(): DB {
         const have = new Set(r.data[k].map(x => x.id))
         ;(r.data[k] as { id: string }[]).push(...base[k].filter(x => !have.has(x.id)))
       }
+      r.data.taxCodes = base.taxCodes // 稅別碼是固定的參考資料，練習版不能修改，直接換成最新的
       return r.data
     }
     localStorage.setItem(KEY + ':broken', raw)

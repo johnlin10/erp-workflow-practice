@@ -27,10 +27,10 @@ export const blankRequisition = (db: DB, date: string): Requisition => ({
   ...base(db, 'requisition', date), plant: firstPlant(db), dept: '', requester: '', source: '手動輸入', reqDate: date, lines: [],
 })
 export const blankPurchase = (db: DB, date: string): Purchase => ({
-  ...base(db, 'purchase', date), ...money(db), supplier: '', plant: firstPlant(db), buyer: '', poDate: date, lines: [],
+  ...base(db, 'purchase', date), ...money(db, 'P02'), supplier: '', plant: firstPlant(db), buyer: '', poDate: date, lines: [],
 })
 export const blankReceipt = (db: DB, date: string): Receipt => ({
-  ...base(db, 'receipt', date), ...money(db), supplier: '', plant: firstPlant(db), contact: '', supplierNo: '', receiptDate: date, lines: [],
+  ...base(db, 'receipt', date), ...money(db, 'P02'), supplier: '', plant: firstPlant(db), contact: '', supplierNo: '', receiptDate: date, lines: [],
 })
 export const blankSale = (db: DB, date: string): Sale => ({
   ...base(db, 'sale', date), ...money(db), customer: '', plant: firstPlant(db), dept: '', sales: '', saleDate: date, lines: [],

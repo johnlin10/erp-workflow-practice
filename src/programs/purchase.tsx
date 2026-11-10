@@ -68,7 +68,7 @@ const reqMaintCfg: DocConfig = {
     [{ k: 'name', label: '品名', t: 'ro', w: 460 }, { k: 'poQty', label: '採購數量', t: 'num', w: 200 }, X('採購包裝數量', 170, { t: 'num' })],
     [{ k: 'spec', label: '規格', t: 'ro', w: 460 }, { k: '_poUnit', label: '採購單位', t: 'ro', w: 94, show: r => r.unit }, roText('採購包裝單位', '', 80, [roText('小單位', '', 80)])],
     [{ k: 'date', label: '單據日期', t: 'ro', w: 216 }, X('交易條件', 94, { pick: { icon: 'pick', cols: [['交易條件', r => r.id]], rows: () => [{ id: '1' }], val: r => r.id } }), null],
-    [{ k: 'reqDate', label: '請購日期', t: 'ro', w: 216 }, X('稅別碼', 94, { req: true, pick: PK.tax }), null],
+    [{ k: 'reqDate', label: '請購日期', t: 'ro', w: 216 }, X('稅別碼', 94, { req: true, pick: PK.tax('P') }), null],
     [{ k: 'qty', label: '請購數量', t: 'ro', w: 172 }, sel('_taxType', '課稅別', 294, TAX_TYPES), roText('營業稅率', '. %', 228)],
     [{ k: 'unit', label: '請購單位', t: 'ro', w: 126, with: [roText('請購包裝數量', '0', 160)] }, X('採購幣別', 94, { pick: PK.currency }), { k: '_bill', label: '計價數量', t: 'ro', w: 190, show: r => r.poQty }],
     [roText('小單位', '', 90, [roText('請購包裝單位', '', 126)]), { k: 'price', label: '採購單價', t: 'num', w: 180, mask: 'cost' }, { k: '_billUnit', label: '計價單位', t: 'ro', w: 160, show: r => r.unit }],
@@ -103,7 +103,7 @@ const poCfg: DocConfig = {
   ],
   tabs: [
     { label: '交易資料', rows: [
-      [F.currency('幣別'), F.taxCode, F.payTerm],
+      [F.currency('幣別'), F.taxCodeP, F.payTerm],
       [F.rate, F.taxType, F.remark],
       [null, F.taxRate, null],
     ] },
@@ -145,7 +145,7 @@ const rcCfg: DocConfig = {
       [roText('交易條件', '1', 44, [roText('', '一般交易', 120)]), null],
       [{ k: 'contact', label: '聯絡人', w: 280, pick: { ...PK.employee, icon: 'person', title: '開窗查詢 - 聯絡人' } }, null],
     ] },
-    { label: '發票資料', rows: [[F.taxCode], [F.taxType], [F.taxRate]] },
+    { label: '發票資料', rows: [[F.taxCodeP], [F.taxType], [F.taxRate]] },
     ph('訂金/EBC資料'), ph('資料瀏覽'),
   ],
   lines: {

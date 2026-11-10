@@ -78,7 +78,8 @@ export const PK = {
   plant: { icon: 'plant', cols: [['廠別代號', r => r.id], ['廠別名稱', r => r.name]], rows: db => db.plants, val: r => r.id } as PickDef,
   warehouse: { icon: 'plant', cols: [['庫別代號', r => r.id], ['庫別名稱', r => r.name], ['廠別', r => r.plant]], rows: db => db.warehouses, val: r => r.id } as PickDef,
   currency: { icon: 'money', cols: [['幣別', r => r.id], ['幣別名稱', r => r.name], ['匯率', r => r.rate]], rows: db => db.currencies, val: r => r.id } as PickDef,
-  tax: { icon: 'pick', cols: [['稅別碼', r => r.id], ['名稱', r => r.name], ['課稅別', r => r.taxType], ['營業稅率', r => r.rate]], rows: db => db.taxCodes, val: r => r.id } as PickDef,
+  /** 稅別碼：銷售系統用 S 開頭、採購系統用 P 開頭 */
+  tax: (k: string) => ({ icon: 'pick', cols: [['稅別碼', r => r.id], ['名稱', r => r.name], ['課稅別', r => r.taxType], ['營業稅率', r => r.rate]], rows: db => db.taxCodes.filter(t => t.id.startsWith(k)), val: r => r.id }) as PickDef,
   user: { icon: 'person', cols: [['登入者代號', r => r.id], ['登入者名稱', r => r.name]], rows: db => db.users, val: r => r.id } as PickDef,
   docType: (kind: string): PickDef => ({ icon: 'tree', cols: [['單別', r => r.id], ['單據名稱', r => r.name]], rows: db => db.docTypes.filter(t => t.kind === kind), val: r => r.id }),
   itemStock: { icon: 'pick', cols: [['品號', r => r.id], ['品名', r => r.name], ['規格', r => r.spec], ['單位', r => r.unit]], rows: db => db.items, val: r => r.id } as PickDef,

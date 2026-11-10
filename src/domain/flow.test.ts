@@ -63,7 +63,7 @@ describe('考試流程：報價 → 訂單 → 變更 → 轉請購 → 採購 �
     }, 'admin')
     expect(j2.result).toContain('A331-202611001')
     const po = db.purchases[0]
-    expect(po).toMatchObject({ supplier: 'A001', status: 'N' })
+    expect(po).toMatchObject({ supplier: 'A001', status: 'N', taxCode: 'P02' })
     expect(req.lines[0].poNo).toBe('202611001')
     expect(() => unconfirmDoc(structuredClone(db), 'requisition', 'C311', req.no)).toThrow('已被下列單據引用')
 

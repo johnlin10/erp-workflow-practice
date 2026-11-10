@@ -139,7 +139,7 @@ export function runPURB01(draft: DB, p: PURB01Params, user: string): Job {
     nos.push(no)
     const po: Purchase = {
       type: p.poType, no, date: p.poDate, status: 'N', confirmer: '', creator: user, remark: '',
-      srcType: '', srcNo: '', currency: sup.currency || 'NTD', rate: 1, taxCode: 'S02', taxType: '2', taxRate: 5,
+      srcType: '', srcNo: '', currency: sup.currency || 'NTD', rate: 1, taxCode: 'P02', taxType: '2', taxRate: 5,
       payTerm: sup.payTerm, supplier: sup.id, plant: r0.plant, buyer: l0.buyer, poDate: p.poDate, lines: [],
     }
     items.forEach(({ r, l }) => {

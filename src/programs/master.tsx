@@ -232,7 +232,7 @@ const custCfg: DocConfig = {
     ph('基本資料(二)'),
     { label: '地址資料', rows: [[{ k: 'address', label: '送貨地址', w: 520 }]] },
     { label: '交易資料(一)', rows: [
-      [{ k: 'taxCode', label: '稅別碼', req: true, pick: PK.tax, w: 70, name: (db, r) => names.tax(db, r.taxCode) }],
+      [{ k: 'taxCode', label: '稅別碼', req: true, pick: PK.tax('S'), w: 70, name: (db, r) => names.tax(db, r.taxCode) }],
       [{ k: 'payTerm', label: '付款條件', w: 160 }],
     ] },
     ph('交易資料(二)'),
