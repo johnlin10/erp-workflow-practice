@@ -76,7 +76,7 @@ export function headerChange(r: R, k: string, db: DB): R {
   }
   if (k === 'supplier') {
     const s = db.suppliers.find(x => x.id === r.supplier)
-    if (s) r = { ...r, currency: s.currency || r.currency, payTerm: s.payTerm || r.payTerm, ...('contact' in r ? { contact: s.contact } : {}) }
+    if (s) r = { ...r, currency: s.currency || r.currency, payTerm: s.payTerm || r.payTerm, taxCode: s.taxCode || r.taxCode, ...('contact' in r ? { contact: s.contact } : {}) }
   }
   if (k === 'customer' || k === 'taxCode' || k === 'supplier') {
     const t = db.taxCodes.find(x => x.id === r.taxCode)

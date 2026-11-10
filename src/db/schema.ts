@@ -34,21 +34,28 @@ export const DocType = z.object({ id: str, name: str, kind: DocKind })
 export const Employee = z.object({ id: str, name: str, dept: str })
 export const Currency = z.object({ id: str, name: str, rate: num })
 export const TaxCode = z.object({ id: str, name: str, taxType: str, rate: num })
+/** 基本資料畫面上其他沒有流程用途的欄位（電話二、資本額、地址…），照畫面欄位名稱存起來 */
+const ext = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({})
 export const Item = z.object({
   id: str, name: str, spec: str, unit: str,
   mainWarehouse: str, mainSupplier: str, leadDays: num,
   price: num, cost: num, remark: str,
   acct: str.default(''), // 會計類別（舊資料沒有這欄）
+  lastCost: num.default(0), retail: num.default(0), floorPrice: num.default(0), // 最近進價（進貨確認時更新）、零售價、業務底價
+  ext,
 })
 export const Customer = z.object({
   id: str, short: str, name: str, enName: str,
   owner: str, contact: str, tel: str, fax: str, email: str, taxId: str,
   currency: str, taxCode: str, payTerm: str, sales: str, dept: str,
   creditLimit: num, address: str,
+  ext,
 })
 export const Supplier = z.object({
   id: str, short: str, name: str, tel: str, contact: str, taxId: str,
   currency: str, payTerm: str,
+  taxCode: str.default('P02'), // 採購單據預設的稅別碼
+  ext,
 })
 
 // ---------- 單據 ----------

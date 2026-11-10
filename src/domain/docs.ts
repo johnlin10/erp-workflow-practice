@@ -150,6 +150,9 @@ export function confirmDoc(draft: DB, kind: DocKind, type: string, no: string, u
         pl.closed = pl.received >= pl.qty
       }
       if (l.accepted > 0) draft.stock.push({ date: r.date, item: l.item, warehouse: l.warehouse, qty: l.accepted, docKind: 'receipt', docType: r.type, docNo: r.no, seq: l.seq })
+      // 最近進價：進貨確認時更新（取消確認不還原，跟一般 ERP 一樣）
+      const it = draft.items.find(x => x.id === l.item)
+      if (it && l.accepted > 0) it.lastCost = round(l.price * (r.rate || 1), 4)
     })
   }
   if (kind === 'sale') {

@@ -277,3 +277,7 @@ select.fld { padding: 0 2px; }
 .copy .radio-box { flex-direction: row; gap: 36px; background: var(--face); padding: 8px 14px; }
 .copy-body .form-table { border-spacing: 6px 10px; }
 .dlg-title .grow { flex: 1; }
+.tree-list { padding: 6px 8px; background: #fff; }
+.tree-node { margin-left: 18px; line-height: 20px; }
+.tree-list > .tree-node { margin-left: 0; }
+.tree-node > summary { cursor: default; white-space: nowrap; }

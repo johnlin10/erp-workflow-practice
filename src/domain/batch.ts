@@ -14,6 +14,11 @@ function pushJob(draft: DB, program: string, name: string, user: string, params:
 }
 
 const range = (a: string, b: string) => `${a}~${b}`
+/** 採購單的稅別碼取自供應廠商，找不到就用 P02 應稅外加 */
+function supTax(db: DB, code: string) {
+  const t = db.taxCodes.find(x => x.id === code) ?? db.taxCodes.find(x => x.id === 'P02')
+  return { taxCode: t?.id ?? '', taxType: t?.taxType ?? '', taxRate: t?.rate ?? 0 }
+}
 const docRange = (type: string, nos: string[]) =>
   nos.length ? `${type}-${nos[0]}~${type}-${nos[nos.length - 1]}; ` : ''
 
@@ -139,7 +144,7 @@ export function runPURB01(draft: DB, p: PURB01Params, user: string): Job {
     nos.push(no)
     const po: Purchase = {
       type: p.poType, no, date: p.poDate, status: 'N', confirmer: '', creator: user, remark: '',
-      srcType: '', srcNo: '', currency: sup.currency || 'NTD', rate: 1, taxCode: 'P02', taxType: '2', taxRate: 5,
+      srcType: '', srcNo: '', currency: sup.currency || 'NTD', rate: 1, ...supTax(draft, sup.taxCode),
       payTerm: sup.payTerm, supplier: sup.id, plant: r0.plant, buyer: l0.buyer, poDate: p.poDate, lines: [],
     }
     items.forEach(({ r, l }) => {

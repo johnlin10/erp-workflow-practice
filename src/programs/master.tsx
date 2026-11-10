@@ -10,17 +10,27 @@ import { Icon } from '../ui/icons'
 import { names, PK, type PickDef } from '../ui/Picker'
 import type { ProgProps } from '../ui/session'
 import { PROGRAMS } from './index'
-import { ph, roText, X } from './common'
+import { F, ph, roText, TAX_TYPES, X } from './common'
+
+const TAX_NAME = Object.fromEntries(TAX_TYPES)
 
 type R = any
-type Coll = 'users' | 'perms' | 'items' | 'customers'
+type Coll = 'users' | 'perms' | 'items' | 'customers' | 'suppliers'
 
 /** 基本資料共用：以 id（權限是 userId）為主鍵，新增時檢查重複，刪除前檢查有沒有被單據用到 */
+// 畫面上 _ 開頭的欄位（練習用欄位）存進 ext，讀出時再攤平回來
+const withExt = (r: R): R => (r.ext ? { ...r, ...r.ext } : r)
+function packExt(r: R) {
+  const ext: R = {}
+  for (const k of Object.keys(r)) if (k.startsWith('_')) { ext[k] = r[k]; delete r[k] }
+  if ('ext' in r) r.ext = ext
+}
 function masterBase(coll: Coll, id: string, label: string, usedBy?: (db: DB, key: string) => boolean): Pick<DocConfig, 'records' | 'key' | 'save' | 'remove'> {
   return {
-    records: db => db[coll] as R[],
+    records: db => (db[coll] as R[]).map(withExt),
     key: r => r[id],
     save: (d, r, isNew) => {
+      packExt(r)
       const key = String(r[id] ?? '').trim()
       if (!key) fail(`請輸入${label}`)
       r[id] = key
@@ -152,8 +162,8 @@ const stockLines = (db: DB, id: string) => db.warehouses.filter(w => stockOf(db,
 const itemCfg: DocConfig = {
   code: 'INVI02',
   ...itemBase,
-  records: db => db.items.map(it => ({ ...it, lines: stockLines(db, it.id) })),
-  blank: () => ({ id: '', name: '', spec: '', unit: '', mainWarehouse: '', mainSupplier: '', leadDays: 0, price: 0, cost: 0, remark: '', acct: '' }),
+  records: db => db.items.map(it => ({ ...withExt(it), lines: stockLines(db, it.id) })),
+  blank: () => ({ id: '', name: '', spec: '', unit: '', mainWarehouse: '', mainSupplier: '', leadDays: 0, price: 0, cost: 0, remark: '', acct: '', lastCost: 0, retail: 0, floorPrice: 0, ext: {} }),
   header: [
     [{ k: 'id', label: '品號', pk: true, w: 210, pick: PK.item }, roText('版次', '', 46), { k: 'unit', label: '單位', req: true, w: 52 }, { k: '_stock', label: '庫存數量', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) : 0) }],
     [{ k: 'name', label: '品名', w: 236 }, null, roText('小單位', '', 52), { k: '_stockAmt', label: '庫存金額', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) * r.cost : 0) }],
@@ -180,8 +190,19 @@ const itemCfg: DocConfig = {
       [{ k: 'leadDays', label: '固定前置天數', t: 'num', w: 80 }],
     ] },
     ph('採購生管2'),
-    { label: '售價', rows: [[{ k: 'price', label: '標準售價', t: 'num', w: 120, mask: 'price' }]] },
-    { label: '成本', rows: [[{ k: 'cost', label: '標準進價', t: 'num', w: 120, mask: 'cost' }]] },
+    // 售價頁籤的欄位參考同學的專案；最近進價在進貨單確認時自動更新
+    { label: '售價', rows: [
+      [X('標準進價含稅', 0, { t: 'check', label: '含稅' }), { k: 'cost', label: '標準進價', t: 'num', w: 120, mask: 'cost' }, X('關稅率', 70, { t: 'num', suffix: '%' })],
+      [X('標準售價含稅', 0, { t: 'check', label: '含稅' }), { k: 'price', label: '標準售價', t: 'num', w: 120, mask: 'price' }, X('貨物稅率', 70, { t: 'num', suffix: '%' })],
+      [null, { k: 'lastCost', label: '最近進價', t: 'ro', w: 120, mask: 'cost', show: r => r.lastCost ?? 0 }, roText('營業稅率', '5 %', 70)],
+      [X('零售價含稅', 0, { t: 'check', label: '含稅' }), { k: 'retail', label: '零售價', t: 'num', w: 120, mask: 'price' }, X('售價定價一', 120, { t: 'num', mask: 'price' })],
+      [null, { k: 'floorPrice', label: '業務底價', t: 'num', w: 120, mask: 'price' }, X('售價定價二', 120, { t: 'num', mask: 'price' })],
+      [null, null, X('售價定價三', 120, { t: 'num', mask: 'price' })],
+    ] },
+    { label: '成本', rows: [
+      [{ k: '_unitCost2', label: '單位成本', t: 'ro', w: 120, mask: 'cost', show: r => r.cost ?? 0 }],
+      [{ k: '_stockAmt2', label: '庫存金額', t: 'ro', w: 150, mask: 'cost', show: (r, db) => (r.id ? stockOf(db, r.id) * r.cost : 0) }],
+    ] },
     ph('品管'), ph('其他'),
   ],
   // 單身：各庫別的庫存（唯讀）
@@ -207,7 +228,7 @@ const itemCfg: DocConfig = {
 const custCfg: DocConfig = {
   code: 'COPI01',
   ...masterBase('customers', 'id', '客戶代號', (db, k) => [...db.quotes, ...db.orders, ...db.sales].some(d => d.customer === k)),
-  blank: () => ({ id: '', short: '', name: '', enName: '', owner: '', contact: '', tel: '', fax: '', email: '', taxId: '', currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '', dept: '', creditLimit: 0, address: '' }),
+  blank: () => ({ id: '', short: '', name: '', enName: '', owner: '', contact: '', tel: '', fax: '', email: '', taxId: '', currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '', dept: '', creditLimit: 0, address: '', ext: {} }),
   header: [
     [{ k: 'id', label: '客戶代號', pk: true, w: 120, pick: { ...PK.customer, icon: 'customer' } }, { k: 'short', label: '客戶簡稱', w: 330 }, roText('版次', '', 70)],
     [{ k: 'name', label: '客戶全名', w: 470, span: 2 }, roText('客戶核准日', '  /  /  ', 130)],
@@ -230,12 +251,29 @@ const custCfg: DocConfig = {
       [null, X('歇業日期', 120, { t: 'date' })],
     ] },
     ph('基本資料(二)'),
-    { label: '地址資料', rows: [[{ k: 'address', label: '送貨地址', w: 520 }]] },
-    { label: '交易資料(一)', rows: [
-      [{ k: 'taxCode', label: '稅別碼', req: true, pick: PK.tax('S'), w: 70, name: (db, r) => names.tax(db, r.taxCode) }],
-      [{ k: 'payTerm', label: '付款條件', w: 160 }],
+    // 地址資料、交易資料的欄位參考同學的專案
+    { label: '地址資料', rows: [
+      [X('登記郵遞區號', 70, { label: '郵遞區號' }), X('登記地址', 470)],
+      [X('發票郵遞區號', 70, { label: '郵遞區號' }), X('發票地址', 470)],
+      [X('送貨郵遞區號', 70, { label: '郵遞區號' }), { k: 'address', label: '送貨地址', w: 470 }],
+      [X('帳單郵遞區號', 70, { label: '郵遞區號' }), X('帳單收件人', 200)],
+      [null, X('帳單地址', 470)],
     ] },
-    ph('交易資料(二)'),
+    { label: '交易資料(一)', rows: [
+      [X('稅額計算方式', 200, { t: 'select', opts: [['1', '1:整張資料計算'], ['2', '2:單身單筆資料計算']] }), X('隨貨附發票', 0, { t: 'check' })],
+      [X('銷售評等', 60), X('信用評等', 60)],
+      [X('訂金比率', 80, { t: 'num', suffix: '%' }), X('價格條件', 200)],
+      [F.payTerm, X('匯至EBC', 0, { t: 'check' })],
+      [X('EBC申請代號', 160), X('報關', 140, { t: 'select', opts: [['1', '非經海關'], ['2', '經海關']] })],
+      [X('單據發送方式', 140, { t: 'select', opts: [['1', '1:郵寄'], ['2', '2:傳真'], ['3', '3:E-Mail'], ['4', '4:專人送達']] }), X('票據寄領', 140, { t: 'select', opts: [['1', '1:自領'], ['2', '2:郵寄'], ['3', '3:專人送達']] })],
+    ] },
+    { label: '交易資料(二)', rows: [
+      [X('收款方式', 140, { t: 'select', opts: [['1', '1:匯款'], ['2', '2:支票'], ['3', '3:現金'], ['4', '4:信用卡']] })],
+      [{ k: 'taxCode', label: '稅別碼', req: true, pick: PK.tax('S'), w: 70, name: (db, r) => names.tax(db, r.taxCode) }],
+      [{ k: '_taxType', label: '課稅別', t: 'ro', w: 160, show: (r, db) => TAX_NAME[db.taxCodes.find(t => t.id === r.taxCode)?.taxType ?? ''] ?? '' }],
+      [X('發票聯數', 140, { t: 'select', opts: [['2', '二聯式'], ['3', '三聯式'], ['5', '電子計算機'], ['7', '電子發票']] })],
+      [X('收入遞延天數', 70, { t: 'num' })],
+    ] },
     { label: '信用額度', rows: [[{ k: 'creditLimit', label: '信用額度', t: 'num', w: 140, suffix: '（0 表示不控管）' }]] },
     ph('國外資料'), ph('資料瀏覽'),
   ],
@@ -249,6 +287,47 @@ const custCfg: DocConfig = {
   query: [['客戶代號', r => r.id], ['客戶簡稱', r => r.short]],
 }
 
+// ---------- PURI01 廠商資料建立作業 ----------
+// 版面參考同學的專案（tailing-cloud/workflow-erp-conductor）；稅別碼、付款條件、幣別會帶到採購單據
+const supBase = masterBase('suppliers', 'id', '廠商代號', (db, k) =>
+  [...db.purchases, ...db.receipts].some(d => d.supplier === k) || db.requisitions.some(r => r.lines.some(l => l.supplier === k)) || db.items.some(i => i.mainSupplier === k))
+const supCfg: DocConfig = {
+  code: 'PURI01',
+  ...supBase,
+  blank: () => ({ id: '', short: '', name: '', tel: '', contact: '', taxId: '', currency: 'NTD', payTerm: '', taxCode: 'P02', ext: {}, '_核准狀況': '1' }),
+  header: [
+    [{ k: 'id', label: '廠商代號', pk: true, w: 120, pick: PK.supplier }, { k: 'short', label: '廠商簡稱', w: 220 }, { k: 'taxId', label: '統一編號', w: 130 }],
+    [{ k: 'name', label: '公司全名', w: 450, span: 2 }, X('核准狀況', 130, { t: 'select', opts: [['1', '1:已核准'], ['2', '2:未核准']] })],
+  ],
+  tabs: [
+    { label: '基本資料', rows: [
+      [{ k: 'tel', label: 'TEL(一)', w: 200 }, X('負責人', 160)],
+      [X('TEL(二)', 200), { k: 'contact', label: '聯絡人', w: 160 }],
+      [X('FAXNO', 200), X('採購人員', 120, { pick: PK.employee })],
+      [X('E_MAIL', 300), X('開業日', 120, { t: 'date' })],
+      [null, X('資本額', 160, { t: 'num', suffix: '萬' })],
+    ] },
+    ph('基本資料(二)'),
+    { label: '交易資料', rows: [
+      [{ k: 'currency', label: '交易幣別', req: true, pick: PK.currency, w: 85, name: (db, r) => names.currency(db, r.currency) }],
+      [{ k: 'taxCode', label: '稅別碼', req: true, pick: PK.tax('P'), w: 70, name: (db, r) => names.tax(db, r.taxCode) }],
+      [F.payTerm],
+      [X('稅額計算方式', 200, { t: 'select', opts: [['1', '1:整張資料計算'], ['2', '2:單身單筆資料計算']] })],
+    ] },
+    { label: '地址資料', rows: [[X('郵遞區號', 80)], [X('地址', 520)]] },
+    ph('APS'),
+  ],
+  save: (d, r, isNew, user) => {
+    if (!String(r.short ?? '').trim()) fail('請輸入廠商簡稱')
+    if (!d.currencies.some(c => c.id === r.currency)) fail('請輸入正確的交易幣別')
+    if (!d.taxCodes.some(t => t.id === r.taxCode && t.id.startsWith('P'))) fail('請輸入採購用（P 開頭）的稅別碼')
+    return supBase.save!(d, r, isNew, user)
+  },
+  browse: [['廠商代號', r => r.id], ['簡稱', r => r.short], ['公司全名', r => r.name], ['統一編號', r => r.taxId], ['聯絡電話', r => r.tel], ['負責人', r => r['_負責人'] ?? '']],
+  query: [['廠商代號', r => r.id], ['廠商簡稱', r => r.short]],
+}
+
+export const PURI01 = ({ close }: ProgProps) => <DocProgram cfg={supCfg} close={close} />
 export const ADMI10 = ({ close }: ProgProps) => <DocProgram cfg={userCfg} close={close} />
 export const ADMI05 = ({ close }: ProgProps) => <DocProgram cfg={permCfg} close={close} />
 export const INVI02 = ({ close }: ProgProps) => <DocProgram cfg={itemCfg} close={close} />
@@ -285,6 +364,60 @@ export function StockQuery({ close }: ProgProps) {
         </div>
       </div>
       <div className="prog-status"><span className="cell mode">查詢</span><span className="cell">資料筆數: {rows.length}</span><span className="cell grow" /></div>
+    </div>
+  )
+}
+
+// ---------- COPQ05 訂單樹狀資訊查詢 ----------
+// 想法參考同學的專案：從訂單往下展開變更單、銷貨單、請購單→採購單→進貨單
+type TreeDoc = { type: string; no: string; date: string; status: string; lines: { srcType: string; srcNo: string }[] }
+const ST: Record<string, string> = { N: '未確認', Y: '已確認', V: '作廢' }
+const fromSrc = <T extends TreeDoc>(ds: T[], type: string, no: string) => ds.filter(d => d.status !== 'V' && d.lines.some(l => l.srcType === type && l.srcNo === no))
+const Node = ({ label, d, children }: { label: string; d: { type: string; no: string; date: string; status: string }; children?: React.ReactNode }) => (
+  <details open className="tree-node">
+    <summary>{label} {d.type}-{d.no}　{d.date}　{ST[d.status] ?? d.status}</summary>
+    {children}
+  </details>
+)
+
+export function OrderTree({ close }: ProgProps) {
+  const db = useDb()
+  const [q, setQ] = useState('')
+  const orders = db.orders.filter(o => !q || o.no.includes(q) || o.customer.includes(q) || names.customer(db, o.customer).includes(q))
+  return (
+    <div className="prog">
+      <div className="menubar"><div className="menu"><button onClick={close}>離開(X)</button></div></div>
+      <div className="toolbar query-tools">
+        <Icon n="query" size={20} /><span>訂單單號/客戶</span>
+        <input className="fld" value={q} onChange={e => setQ(e.target.value)} style={{ width: 200 }} autoFocus />
+      </div>
+      <div className="prog-body">
+        <div className="browse-list tree-list">
+          {orders.map(o => (
+            <Node key={o.type + o.no} label="客戶訂單" d={o}>
+              <span className="dim">　客戶 {o.customer} {names.customer(db, o.customer)}</span>
+              {db.orderChanges.filter(c => c.orderType === o.type && c.orderNo === o.no).map(c => (
+                <Node key={'c' + c.ver} label={`訂單變更單 版次 ${String(c.ver).padStart(4, '0')}`} d={{ type: c.orderType, no: c.orderNo, date: c.date, status: c.status }} />
+              ))}
+              {fromSrc(db.sales, o.type, o.no).map(s => <Node key={'s' + s.type + s.no} label="銷貨單" d={s} />)}
+              {fromSrc(db.requisitions, o.type, o.no).map(r => (
+                <Node key={'r' + r.type + r.no} label="請購單" d={r}>
+                  {[...new Set(r.lines.filter(l => l.poNo).map(l => l.poType + '\t' + l.poNo))].map(k => {
+                    const [t, n] = k.split('\t'), po = db.purchases.find(p => p.type === t && p.no === n)
+                    return po && (
+                      <Node key={k} label="採購單" d={po}>
+                        {fromSrc(db.receipts, po.type, po.no).map(rc => <Node key={rc.type + rc.no} label="進貨單" d={rc} />)}
+                      </Node>
+                    )
+                  })}
+                </Node>
+              ))}
+            </Node>
+          ))}
+          {!orders.length && <div className="dim">目前沒有訂單。</div>}
+        </div>
+      </div>
+      <div className="prog-status"><span className="cell mode">查詢</span><span className="cell">訂單筆數: {orders.length}</span><span className="cell grow" /></div>
     </div>
   )
 }

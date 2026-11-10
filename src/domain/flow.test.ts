@@ -86,6 +86,7 @@ describe('考試流程：報價 → 訂單 → 變更 → 轉請購 → 採購 �
     confirmDoc(db, 'receipt', 'A341', rc.no, 'admin')
     expect(stockOf(db, '900004', 'P003')).toBe(55)
     expect(po.lines[0]).toMatchObject({ received: 55, closed: false })
+    expect(db.items.find(i => i.id === '900004')!.lastCost).toBe(rc.lines[0].price) // 最近進價
 
     // 銷貨 55（剩 5 待交）
     const s = orderToSale(db, 'A221', o.no, blankSale(db, D))

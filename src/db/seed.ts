@@ -2,14 +2,14 @@ import type { DB, Item, Supplier, Customer } from './schema'
 
 // 預設資料：依課堂截圖建立。截圖看不到的值（單價、主供應商、庫別名稱）是推測的。
 const item = (id: string, name: string, spec: string, unit: string, mainSupplier: string, price: number, cost: number, mainWarehouse = 'P003', acct = '1'): Item =>
-  ({ id, name, spec, unit, mainWarehouse, mainSupplier, leadDays: 7, price, cost, remark: '', acct })
+  ({ id, name, spec, unit, mainWarehouse, mainSupplier, leadDays: 7, price, cost, remark: '', acct, lastCost: 0, retail: 0, floorPrice: 0, ext: {} })
 
 const sup = (id: string, short: string, tel = '', contact = '', taxId = '', name = short): Supplier =>
-  ({ id, short, name, tel, contact, taxId, currency: 'NTD', payTerm: '' })
+  ({ id, short, name, tel, contact, taxId, currency: 'NTD', payTerm: '', taxCode: 'P02', ext: {} })
 
 const cust = (id: string, short: string, name: string, creditLimit: number, more: Partial<Customer> = {}): Customer => ({
   id, short, name, enName: '', owner: '', contact: '', tel: '', fax: '', email: '', taxId: '',
-  currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '201', dept: '', creditLimit, address: '', ...more,
+  currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '201', dept: '', creditLimit, address: '', ext: {}, ...more,
 })
 
 const TAX_TYPE_NAME: Record<string, string> = { 1: '應稅內含', 2: '應稅外加', 3: '零稅', 4: '免稅', 9: '不計稅' }
