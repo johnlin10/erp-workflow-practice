@@ -36,7 +36,10 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
       const ex = ws.find(w => w.code === code)
       if (ex) return ws.map(w => (w === ex ? { ...w, min: false, z: z.current } : w))
       const n = ws.length % 8
-      return [...ws, { id: nextId.current++, code, x: 40 + n * 26, y: 8 + n * 26, w: Math.min(def.w, innerWidth - 44 - n * 26), h: Math.min(def.h, innerHeight - 4), z: z.current, min: false, max: false }]
+      // 開啟時整個視窗都在工作區內；工作區太小就縮小視窗（內容會捲動）
+      const area = document.querySelector('.winlayer')!
+      const x = Math.min(40 + n * 26, Math.max(0, area.clientWidth - def.w)), y = Math.min(8 + n * 26, Math.max(0, area.clientHeight - def.h))
+      return [...ws, { id: nextId.current++, code, x, y, w: Math.min(def.w, area.clientWidth - x), h: Math.min(def.h, area.clientHeight - y), z: z.current, min: false, max: false }]
     })
   }
   const patch = (id: number, p: Partial<WinState>) => setWins(ws => ws.map(w => (w.id === id ? { ...w, ...p } : w)))
