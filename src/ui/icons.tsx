@@ -18,6 +18,7 @@ const ICONS: Record<string, ReactNode> = {
   ok: <path d="M4 13l5 5L20 6" fill="none" stroke="#1a9a1a" strokeWidth="3.4" strokeLinecap="round" />,
   cancel: <path d="M5 5l14 14M19 5L5 19" stroke="#d01818" strokeWidth="3.6" strokeLinecap="round" />,
   confirm: <><path d="M12 3l8 8-8 8-8-8z" fill="#f2c94c" stroke="#8a6d00" /><path d="M8 11l3 3 5-6" fill="none" stroke="#1a7a1a" strokeWidth="2" /></>,
+  custConfirm: <><circle cx="9" cy="8" r="4" fill="#8fb4e8" stroke="#2a5ca8" /><path d="M2 20c0-4 3-7 7-7s7 3 7 7z" fill="#8fb4e8" stroke="#2a5ca8" /><path d="M14 13l3 3 5-6" fill="none" stroke="#1a7a1a" strokeWidth="2.5" /></>,
   unconfirm: <><path d="M12 3l8 8-8 8-8-8z" fill="#ddd" stroke="#777" /><path d="M9 8l6 6M15 8l-6 6" stroke="#b22" strokeWidth="2" /></>,
   void: <><circle cx="12" cy="12" r="8" fill="#fff" stroke="#b22" strokeWidth="2" /><path d="M6.5 17.5l11-11" stroke="#b22" strokeWidth="2" /></>,
   copyFrom: <><rect x="4" y="3" width="10" height="13" fill="#fff" stroke="#444" /><rect x="10" y="8" width="10" height="13" fill="#e8f0ff" stroke="#246" /><path d="M7 12h6l-2-2M13 12l-2 2" stroke="#c22" strokeWidth="1.4" fill="none" /></>,

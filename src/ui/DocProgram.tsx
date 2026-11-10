@@ -76,6 +76,8 @@ export type DocConfig = {
   confirm?: (draft: DB, r: R, user: string) => void
   unconfirm?: (draft: DB, r: R) => void
   voidIt?: (draft: DB, r: R) => void
+  /** 工具列上額外的按鈕（報價單的客戶確認），run 回傳完成訊息 */
+  extraTools?: { icon: string; label: string; on: (r: R) => boolean; run: (draft: DB, r: R) => string }[]
   status?: (r: R) => string
   copyFrom?: CopyDef
   browse: [string, (r: R, db: DB) => string | number][]
@@ -193,6 +195,7 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
       { icon: 'confirm', label: '確認', on: !editing && status === 'N' && allow('confirm'), run: doConfirm, sep: true },
       { icon: 'unconfirm', label: '取消確認', on: !editing && status === 'Y' && !!cfg.unconfirm && allow('unconfirm'), run: doUnconfirm },
     ] : []),
+    ...(cfg.extraTools ?? []).map(t => ({ icon: t.icon, label: t.label, on: !editing && !!cur && t.on(cur), run: () => run(() => { let m = ''; commit(d => { m = t.run(d, cur) }); msgbox(m) }) })),
     ...(cfg.voidIt ? [{ icon: 'void', label: '作廢', on: !editing && status === 'N' && allow('void'), run: doVoid }] : []),
     ...(cfg.copyFrom ? [{ icon: 'copyFrom', label: '複製前置單別', on: mode === 'add', run: () => setCopyOpen(true), sep: true }] : []),
     ...(cfg.lines?.blank ? [{ icon: 'delLine', label: '刪除單身(選取列)', on: linesEditable && selLine >= 0 && selLine < lines.length, run: deleteLine }] : []),

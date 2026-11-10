@@ -21,7 +21,7 @@ const quoteCfg: DocConfig = {
   blank: db => blankQuote(db, today()),
   header: [
     [F.docType('quote', '報價單別'), F.date, { k: 'quoteDate', label: '報價日期', t: 'ro', w: 130 }],
-    [F.docNo('報價單號'), { k: '_ver', label: '版次', t: 'ro', w: 72, show: () => '', with: [{ k: 'customerConfirmed', label: '客戶確認', t: 'check' }] }, F.confirmer],
+    [F.docNo('報價單號'), { k: '_ver', label: '版次', t: 'ro', w: 72, show: () => '', with: [{ k: 'customerConfirmed', label: '客戶確認', t: 'check', ro: true }] }, F.confirmer],
   ],
   tabs: [
     { label: '交易資料', rows: [
@@ -34,6 +34,15 @@ const quoteCfg: DocConfig = {
     { label: '其他資料', rows: [[F.remark]] },
     ph('國外資料'), ph('資料瀏覽'),
   ],
+  // 客戶確認：參考同學的專案，由工具列按鈕切換，單頭的勾選框只顯示狀態；不影響轉訂單
+  extraTools: [{
+    icon: 'custConfirm', label: '客戶確認', on: r => r.status !== 'V',
+    run: (d, r) => {
+      const q = d.quotes.find(x => x.type === r.type && x.no === r.no)!
+      q.customerConfirmed = !q.customerConfirmed
+      return q.customerConfirmed ? '客戶確認完成。' : '已取消客戶確認。'
+    },
+  }],
   onField: (r, k, db) => {
     r = headerChange(r, k, db)
     return k === 'date' ? { ...r, quoteDate: r.date } : r
