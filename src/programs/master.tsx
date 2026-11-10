@@ -127,7 +127,6 @@ const permCfg: DocConfig = {
       { k: '_dc', label: '資料管制', w: 70, ro: true, show: () => '' },
       { k: '_design', label: '設計權限', w: 70, ro: true, show: () => '' }],
     blank: () => fullLine(),
-    height: 300,
   },
   side: p => <PermSide {...p} />,
   save: (d, r, isNew, user) => {
@@ -190,7 +189,6 @@ const itemCfg: DocConfig = {
     cols: [{ k: 'warehouse', label: '庫別', w: 90, pk: true, ro: true }, { k: 'whName', label: '庫別名稱', w: 300, ro: true }, { k: 'whType', label: '庫性', w: 150, ro: true },
       { k: 'plant', label: '廠別代號', w: 80, ro: true }, { k: 'plantName', label: '廠別名稱', w: 260, ro: true }, { k: 'qty', label: '庫存數量', w: 100, t: 'num', ro: true }],
     editable: () => false,
-    height: 120,
   },
   save: (d, r, isNew, user) => {
     if (!r.name.trim()) fail('請輸入品名')

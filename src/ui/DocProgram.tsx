@@ -66,7 +66,6 @@ export type DocConfig = {
     blank?: (rec: R, db: DB) => R
     onChange?: (line: R, k: string, db: DB, rec: R) => R
     editable?: (rec: R, mode: Mode) => boolean
-    height?: number
   }
   /** 單身旁邊的面板（使用者權限建立作業用） */
   side?: (p: { rec: R; line: number; editable: boolean; setLine: (patch: R) => void }) => ReactNode
@@ -290,7 +289,7 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
     // 新增列跟一般列用同一個 key 序列，輸入第一個字後焦點才不會跑掉
     const rows: R[] = showNew ? [...lines, null] : lines
     return (
-      <div className="lines" style={{ height: height ?? cfg.lines.height }}>
+      <div className="lines" style={height ? { height, flex: "none" } : undefined}>
         <table className="grid">
           <thead><tr>
             <th className="rh"><Icon n="pick" size={16} /></th>

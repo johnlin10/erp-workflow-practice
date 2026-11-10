@@ -41,7 +41,6 @@ const reqCfg: DocConfig = {
       if (k === 'needDate' || k === 'item') l.deliveryDate = l.needDate
       return l
     },
-    height: 260,
   },
   onField: (r, k, db) => (k === 'date' ? { ...r, reqDate: r.date } : docBase('requisition').onField!(r, k, db)),
   totals: r => [[['數量合計', r.lines.reduce((s: number, l: R) => s + (l.qty || 0), 0)], ['本幣金額合計', 0]]],
@@ -116,7 +115,6 @@ const poCfg: DocConfig = {
       C.src('請購單別-單號-序號'), C.remark],
     blank: rec => ({ seq: '', item: '', name: '', spec: '', unit: '', qty: 0, price: 0, amount: 0, warehouse: '', deliveryDate: rec.poDate || rec.date, received: 0, closed: false, remark: '', srcType: '', srcNo: '', srcSeq: '' }),
     onChange: lineChange('cost'),
-    height: 220,
   },
   onField: (r, k, db) => {
     r = docBase('purchase').onField!(r, k, db)
@@ -144,7 +142,7 @@ const rcCfg: DocConfig = {
       [{ k: 'supplierNo', label: '廠商單號', w: 380 }, roText('列印', '0', 60, [roText('傳送次數', '0', 60)])],
       [{ ...F.currency('幣別'), w: 70, with: [{ ...F.rate, label: '匯率' }] }, F.sign],
       [F.payTerm, { ...F.remark, w: 340 }],
-      [roText('交易條件', '1', 44, [roText('', '一般交易', 0)]), null],
+      [roText('交易條件', '1', 44, [roText('', '一般交易', 120)]), null],
       [{ k: 'contact', label: '聯絡人', w: 280, pick: { ...PK.employee, icon: 'person', title: '開窗查詢 - 聯絡人' } }, null],
     ] },
     { label: '發票資料', rows: [[F.taxCode], [F.taxType], [F.taxRate]] },
@@ -159,7 +157,6 @@ const rcCfg: DocConfig = {
     blank: () => ({ seq: '', item: '', name: '', spec: '', unit: '', qty: 0, accepted: 0, price: 0, amount: 0, warehouse: '', remark: '', srcType: '', srcNo: '', srcSeq: '' }),
     // 進貨數量改了，驗收數量預設跟著一樣
     onChange: lineChange('cost', (l, k) => (k === 'qty' ? { ...l, accepted: l.qty, amount: round(l.qty * l.price) } : l)),
-    height: 220,
   },
   onField: (r, k, db) => {
     r = docBase('receipt').onField!(r, k, db)

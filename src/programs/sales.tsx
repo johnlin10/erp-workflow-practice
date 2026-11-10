@@ -42,7 +42,6 @@ const quoteCfg: DocConfig = {
     cols: [C.seq, { k: '_bizItem', label: '業務品號', w: 120, ro: true, show: () => '' }, C.item, C.name, C.spec, C.qty('數量'), C.unit, C.price('單價'), C.amount('金額'), C.remark],
     blank: () => ({ seq: '', item: '', name: '', spec: '', unit: '', qty: 0, price: 0, amount: 0, remark: '' }),
     onChange: lineChange('price'),
-    height: 220,
   },
   totals: docTotals(['報價金額', '稅額', '合計']),
   browse: [['報價單別', r => r.type], ['報價單號', r => r.no], ['單據日期', r => r.date], ['客戶代號', r => r.customer], ['客戶簡稱', (r, db) => names.customer(db, r.customer)], ['確認碼', r => r.status]],
@@ -84,7 +83,6 @@ const orderCfg: DocConfig = {
       C.src('前置單據'), C.remark],
     blank: (rec) => ({ seq: '', item: '', name: '', spec: '', unit: '', qty: 0, price: 0, amount: 0, warehouse: '', dueDate: dueDefault(rec), delivered: 0, closed: false, remark: '', srcType: '', srcNo: '', srcSeq: '' }),
     onChange: lineChange('price'),
-    height: 200,
   },
   totals: (r, _db, mask) => {
     const t = totals(r)
@@ -148,7 +146,6 @@ const changeCfg: DocConfig = {
     blank: rec => ({ seq: '', origSeq: '', item: '', name: '', spec: '', unit: '', qty: 0, price: 0, amount: 0, warehouse: '', dueDate: dueDefault(rec), remark: '' }),
     onChange: lineChange('price'),
     editable: r => !!r?.orderNo,
-    height: 200,
   },
   save: (d, r, isNew, user) => { if (!r.orderNo) throw new Error('請先選擇要變更的訂單單號'); if (!r.reason.trim()) throw new Error('請輸入變更原因'); saveOrderChange(d, r, isNew, user); return r },
   remove: (d, r) => deleteOrderChange(d, changeKey(r)),
@@ -191,7 +188,6 @@ const saleCfg: DocConfig = {
       { k: '_stock', label: '庫存數量', w: 90, t: 'num', ro: true, show: (l, _r, db) => (l.item ? stockOf(db, l.item, l.warehouse) : '') }, C.src('訂單單別-單號-序號'), C.remark],
     blank: () => ({ seq: '', item: '', name: '', spec: '', unit: '', qty: 0, price: 0, amount: 0, warehouse: '', remark: '', srcType: '', srcNo: '', srcSeq: '' }),
     onChange: lineChange('price'),
-    height: 200,
   },
   totals: (r, _db, mask) => {
     const t = totals(r)

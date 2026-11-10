@@ -10,14 +10,25 @@ type Props = {
 
 const EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
 
+/** 依目前畫面內容量出最小視窗大小：欄位、按鈕、頁籤不換行；本來就會捲動的表格只算幾列高。
+ *  不會超過作業預設的大小（預設大小本來就有部分內容要捲動）。 */
+function minSize(el: HTMLElement, win: WinState): [number, number] {
+  el.classList.add('measuring')
+  const w = el.offsetWidth, h = el.offsetHeight
+  el.classList.remove('measuring')
+  return [Math.max(320, Math.min(w, win.w)), Math.max(200, Math.min(h, win.h))]
+}
+
 /** 作業視窗：可拖曳、縮放、最小化、最大化，可同時開好幾個。 */
 export function Window({ win, title, active, children, onFocus, onClose, onChange }: Props) {
-  const drag = useRef<{ mx: number; my: number; x: number; y: number; w: number; h: number; mode: string } | null>(null)
+  const drag = useRef<{ mx: number; my: number; x: number; y: number; w: number; h: number; mode: string; mw: number; mh: number } | null>(null)
 
   const start = (mode: string) => (e: React.PointerEvent) => {
     if (win.max || e.button !== 0) return
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-    drag.current = { mx: e.clientX, my: e.clientY, x: win.x, y: win.y, w: win.w, h: win.h, mode }
+    const t = e.target as HTMLElement
+    t.setPointerCapture(e.pointerId)
+    const [mw, mh] = mode === 'move' ? [0, 0] : minSize(t.closest('.win') as HTMLElement, win)
+    drag.current = { mx: e.clientX, my: e.clientY, x: win.x, y: win.y, w: win.w, h: win.h, mode, mw, mh }
   }
   const move = (e: React.PointerEvent) => {
     const d = drag.current
@@ -28,7 +39,7 @@ export function Window({ win, title, active, children, onFocus, onClose, onChang
     if (d.mode === 'move') onChange({ x: Math.min(Math.max(d.x + dx, 80 - d.w), area.clientWidth - 80), y: Math.min(Math.max(-area.getBoundingClientRect().top, d.y + dy), area.clientHeight - 30) })
     else {
       // mode 是拉的邊：n/s/e/w 或角落 ne/nw/se/sw；拉上、左邊時要同時移動位置
-      const MW = 420, MH = 260, top = -area.getBoundingClientRect().top
+      const MW = d.mw, MH = d.mh, top = -area.getBoundingClientRect().top
       const p: Partial<WinState> = {}
       if (d.mode.includes('e')) p.w = Math.max(MW, d.w + dx)
       if (d.mode.includes('s')) p.h = Math.max(MH, d.h + dy)
