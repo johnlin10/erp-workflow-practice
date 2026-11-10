@@ -1,7 +1,7 @@
 import { useRef, type ReactNode } from 'react'
 import { Icon } from './icons'
 
-export type WinState = { id: number; code: string; x: number; y: number; w: number; h: number; z: number; min: boolean; max: boolean }
+export type WinState = { id: number; code: string; x: number; y: number; w: number; h: number; z: number; min: boolean; max: boolean; arg?: string }
 
 type Props = {
   win: WinState; title: string; active: boolean; children: ReactNode

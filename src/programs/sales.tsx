@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { blankOrder, blankQuote, blankSale } from '../domain/blank'
 import {
-  changeKey, confirmOrderChange, deleteOrderChange, newOrderChange, orderRemaining, orderToSale, quoteToOrder,
+  changeKey, confirmOrderChange, deleteOrderChange, keyOf, newOrderChange, orderRemaining, orderToSale, quoteToOrder,
   saveOrderChange, today, totals,
 } from '../domain/docs'
 import { stockOf } from '../domain/stock'
@@ -13,6 +13,29 @@ import { C, docBase, docQuery, docTotals, dueDefault, F, headerChange, lineChang
 
 type R = any
 const docName = (db: R, t: string) => names.docType(db, t)
+
+// ---------- 串查作業選單 ----------
+// 選單項目照同學專案的「串查作業」（他依實機截圖整理）；練習版沒有的作業顯示為灰色
+type CQ = NonNullable<DocConfig['crossQuery']>
+const firstItem = (r: { lines?: { item: string }[] }) => r.lines?.find(l => l.item)?.item
+const cust = (r: { customer: string }) => ({ label: '客戶資料建立作業', code: 'COPI01', arg: r.customer })
+const item = (r: { lines?: { item: string }[] }) => ({ label: '品號資料建立作業', code: 'INVI02', arg: firstItem(r) })
+const L = (label: string) => ({ label })
+const quoteCQ: CQ = r => [cust(r), L('標準售價查詢'), item(r), L('價格計算器'), null,
+  L('歷史售價查詢'), L('歷史報價查詢'), L('客戶計價查詢'), L('客戶目前狀況查詢'), L('費用預估建立作業')]
+const orderCQ: CQ = r => [cust(r), L('標準售價查詢'),
+  { label: '報價單建立作業', code: 'COPI05', arg: r.srcNo ? `${r.srcType}-${r.srcNo}` : undefined },
+  L('訂單排定交期維護作業'), item(r), null,
+  { label: '訂單樹狀資訊查詢', code: 'COPQ05', arg: keyOf(r as { type: string; no: string }) },
+  L('客戶信用餘額查詢'), L('歷史售價查詢'), L('客戶計價查詢'), L('正嘜資料查詢'), L('側嘜資料查詢'),
+  L('客戶目前狀況查詢'), L('歷史變更資料查詢'), { label: '傳送資訊目前狀態查詢', code: 'QUEUE' }, L('費用預估建立作業'), L('暫出貨查詢')]
+const saleCQ: CQ = r => {
+  const src = (r.lines as { srcType: string; srcNo: string }[]).find(l => l.srcNo)
+  return [cust(r), L('標準售價查詢'), { label: '客戶訂單建立作業', code: 'COPI06', arg: src ? `${src.srcType}-${src.srcNo}` : undefined },
+    L('結帳單建立作業'), L('預收待抵'), item(r), null,
+    L('信用餘額查詢'), L('歷史售價查詢'), L('客戶計價查詢'), L('銷貨傳票查詢'), L('銷貨成本傳票查詢'),
+    L('客戶目前狀況查詢'), { label: '傳送資訊目前狀態查詢', code: 'QUEUE' }, L('發票列印')]
+}
 
 // ---------- COPI05 報價單建立作業 ----------
 const quoteCfg: DocConfig = {
@@ -35,8 +58,9 @@ const quoteCfg: DocConfig = {
     ph('國外資料'), ph('資料瀏覽'),
   ],
   // 客戶確認：參考同學的專案，由工具列按鈕切換，單頭的勾選框只顯示狀態；不影響轉訂單
+  crossQuery: quoteCQ,
   extraTools: [{
-    icon: 'custConfirm', label: '客戶確認', on: r => r.status !== 'V',
+    icon: 'custConfirm', label: '客戶確認', on: r => r.status === 'Y',
     run: (d, r) => {
       const q = d.quotes.find(x => x.type === r.type && x.no === r.no)!
       q.customerConfirmed = !q.customerConfirmed
@@ -104,10 +128,11 @@ const orderCfg: DocConfig = {
     sources: [{ label: '報價單', kind: 'quote' }, { label: '合約訂單' }],
     candidates: db => ({
       cols: [['客戶代號', r => r.customer], ['客戶名稱', r => names.customer(db, r.customer)], ['報價日期', r => r.date], ['報價單別', r => r.type], ['報價單號', r => r.no], ['單據名稱', r => docName(db, r.type)]],
-      rows: db.quotes.filter(q => q.status === 'Y'),
+      rows: db.quotes.filter(q => q.status === 'Y' && q.customerConfirmed),
     }),
     apply: (db, rec, _k, type, no) => quoteToOrder(db, type, no, rec),
   },
+  crossQuery: orderCQ,
   browse: [['訂單單別', r => r.type], ['訂單單號', r => r.no], ['單據日期', r => r.date], ['客戶代號', r => r.customer], ['客戶簡稱', (r, db) => names.customer(db, r.customer)], ['版次', r => pad4(r.version)], ['確認碼', r => r.status], ['拋轉狀態', r => (r.transferred ? 'Y' : 'N')]],
   query: docQuery('訂單單別', '訂單單號'),
 }
@@ -218,11 +243,12 @@ const saleCfg: DocConfig = {
     }),
     apply: (db, rec, _k, type, no) => orderToSale(db, type, no, rec),
   },
+  crossQuery: saleCQ,
   browse: [['銷貨單別', r => r.type], ['銷貨單號', r => r.no], ['單據日期', r => r.date], ['客戶代號', r => r.customer], ['客戶簡稱', (r, db) => names.customer(db, r.customer)], ['確認碼', r => r.status]],
   query: docQuery('銷貨單別', '銷貨單號'),
 }
 
-export const COPI05 = ({ close }: ProgProps) => <DocProgram cfg={quoteCfg} close={close} />
-export const COPI06 = ({ close }: ProgProps) => <DocProgram cfg={orderCfg} close={close} />
-export const COPI07 = ({ close }: ProgProps) => <DocProgram cfg={changeCfg} close={close} />
-export const COPI08 = ({ close }: ProgProps) => <DocProgram cfg={saleCfg} close={close} />
+export const COPI05 = (p: ProgProps) => <DocProgram cfg={quoteCfg} {...p} />
+export const COPI06 = (p: ProgProps) => <DocProgram cfg={orderCfg} {...p} />
+export const COPI07 = (p: ProgProps) => <DocProgram cfg={changeCfg} {...p} />
+export const COPI08 = (p: ProgProps) => <DocProgram cfg={saleCfg} {...p} />

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { DB } from '../db/schema'
 import { useDb } from '../db/store'
 import { fail } from '../domain/docs'
@@ -8,7 +8,7 @@ import { DocProgram, type DocConfig } from '../ui/DocProgram'
 import { Check, Select } from '../ui/fields'
 import { Icon } from '../ui/icons'
 import { names, PK, type PickDef } from '../ui/Picker'
-import type { ProgProps } from '../ui/session'
+import { useSession, type ProgProps } from '../ui/session'
 import { PROGRAMS } from './index'
 import { F, ph, roText, TAX_TYPES, X } from './common'
 
@@ -327,11 +327,11 @@ const supCfg: DocConfig = {
   query: [['廠商代號', r => r.id], ['廠商簡稱', r => r.short]],
 }
 
-export const PURI01 = ({ close }: ProgProps) => <DocProgram cfg={supCfg} close={close} />
-export const ADMI10 = ({ close }: ProgProps) => <DocProgram cfg={userCfg} close={close} />
-export const ADMI05 = ({ close }: ProgProps) => <DocProgram cfg={permCfg} close={close} />
-export const INVI02 = ({ close }: ProgProps) => <DocProgram cfg={itemCfg} close={close} />
-export const COPI01 = ({ close }: ProgProps) => <DocProgram cfg={custCfg} close={close} />
+export const PURI01 = (p: ProgProps) => <DocProgram cfg={supCfg} {...p} />
+export const ADMI10 = (p: ProgProps) => <DocProgram cfg={userCfg} {...p} />
+export const ADMI05 = (p: ProgProps) => <DocProgram cfg={permCfg} {...p} />
+export const INVI02 = (p: ProgProps) => <DocProgram cfg={itemCfg} {...p} />
+export const COPI01 = (p: ProgProps) => <DocProgram cfg={custCfg} {...p} />
 
 // ---------- 庫存狀況查詢（程式代號推測，標題不顯示）----------
 export function StockQuery({ close }: ProgProps) {
@@ -369,55 +369,76 @@ export function StockQuery({ close }: ProgProps) {
 }
 
 // ---------- COPQ05 訂單樹狀資訊查詢 ----------
-// 想法參考同學的專案：從訂單往下展開變更單、銷貨單、請購單→採購單→進貨單
+// 版面參考同學的專案：左邊訂單單身，右邊樹狀；通常從客戶訂單的「串查作業」開啟。
+// 樹狀從訂單往下展開變更單、銷貨單、請購單→採購單→進貨單，雙擊單據可開啟該作業
 type TreeDoc = { type: string; no: string; date: string; status: string; lines: { srcType: string; srcNo: string }[] }
 const ST: Record<string, string> = { N: '未確認', Y: '已確認', V: '作廢' }
 const fromSrc = <T extends TreeDoc>(ds: T[], type: string, no: string) => ds.filter(d => d.status !== 'V' && d.lines.some(l => l.srcType === type && l.srcNo === no))
-const Node = ({ label, d, children }: { label: string; d: { type: string; no: string; date: string; status: string }; children?: React.ReactNode }) => (
-  <details open className="tree-node">
-    <summary>{label} {d.type}-{d.no}　{d.date}　{ST[d.status] ?? d.status}</summary>
-    {children}
-  </details>
-)
 
-export function OrderTree({ close }: ProgProps) {
+export function OrderTree({ close, arg }: ProgProps) {
   const db = useDb()
+  const { open } = useSession()
   const [q, setQ] = useState('')
-  const orders = db.orders.filter(o => !q || o.no.includes(q) || o.customer.includes(q) || names.customer(db, o.customer).includes(q))
+  const [sel, setSel] = useState(arg ?? '')
+  useEffect(() => { if (arg) { setSel(arg); setQ('') } }, [arg])
+  const rows = db.orders.filter(o => !q || o.no.includes(q) || o.customer.includes(q) || names.customer(db, o.customer).includes(q))
+    .flatMap(o => o.lines.map(l => ({ o, l })))
+  const o = db.orders.find(x => `${x.type}-${x.no}` === sel) ?? rows[0]?.o
+  const Node = ({ label, d, code, children }: { label: string; d: { type: string; no: string; date: string; status: string }; code?: string; children?: React.ReactNode }) => (
+    <details open className="tree-node">
+      <summary onDoubleClick={() => code && open(code, `${d.type}-${d.no}`)} title={code ? `雙擊開啟 ${label}` : ''}>
+        {label} {d.type}-{d.no}　{d.date}　{ST[d.status] ?? d.status}
+      </summary>
+      {children}
+    </details>
+  )
   return (
     <div className="prog">
       <div className="menubar"><div className="menu"><button onClick={close}>離開(X)</button></div></div>
       <div className="toolbar query-tools">
         <Icon n="query" size={20} /><span>訂單單號/客戶</span>
-        <input className="fld" value={q} onChange={e => setQ(e.target.value)} style={{ width: 200 }} autoFocus />
+        <input className="fld" value={q} onChange={e => setQ(e.target.value)} style={{ width: 200 }} />
       </div>
-      <div className="prog-body">
+      <div className="prog-body tree-body">
+        <div className="browse-list tree-orders">
+          <table className="grid">
+            <thead><tr><th className="rh" /><th>訂單單別</th><th>單號</th><th>序號</th><th>品號</th><th>品名</th></tr></thead>
+            <tbody>
+              {rows.map(({ o: x, l }, i) => (
+                <tr key={x.type + x.no + l.seq} className={`${i % 2 ? 'alt' : ''} ${x === o ? 'cur' : ''}`} onClick={() => setSel(`${x.type}-${x.no}`)}>
+                  <td className="rh" /><td>{x.type}</td><td>{x.no}</td><td>{l.seq}</td><td>{l.item}</td><td>{l.name}</td>
+                </tr>
+              ))}
+              {!rows.length && <tr><td className="rh" /><td colSpan={5} className="dim">目前沒有訂單。</td></tr>}
+            </tbody>
+          </table>
+        </div>
         <div className="browse-list tree-list">
-          {orders.map(o => (
-            <Node key={o.type + o.no} label="客戶訂單" d={o}>
+          {o && (
+            <Node label="客戶訂單" d={o} code="COPI06">
               <span className="dim">　客戶 {o.customer} {names.customer(db, o.customer)}</span>
+              {o.srcNo && db.quotes.filter(x => x.type === o.srcType && x.no === o.srcNo).map(x => <Node key="q" label="來源報價單" d={x} code="COPI05" />)}
               {db.orderChanges.filter(c => c.orderType === o.type && c.orderNo === o.no).map(c => (
                 <Node key={'c' + c.ver} label={`訂單變更單 版次 ${String(c.ver).padStart(4, '0')}`} d={{ type: c.orderType, no: c.orderNo, date: c.date, status: c.status }} />
               ))}
-              {fromSrc(db.sales, o.type, o.no).map(s => <Node key={'s' + s.type + s.no} label="銷貨單" d={s} />)}
+              {fromSrc(db.sales, o.type, o.no).map(x => <Node key={'s' + x.type + x.no} label="銷貨單" d={x} code="COPI08" />)}
               {fromSrc(db.requisitions, o.type, o.no).map(r => (
-                <Node key={'r' + r.type + r.no} label="請購單" d={r}>
+                <Node key={'r' + r.type + r.no} label="請購單" d={r} code="PURI05">
                   {[...new Set(r.lines.filter(l => l.poNo).map(l => l.poType + '\t' + l.poNo))].map(k => {
                     const [t, n] = k.split('\t'), po = db.purchases.find(p => p.type === t && p.no === n)
                     return po && (
-                      <Node key={k} label="採購單" d={po}>
-                        {fromSrc(db.receipts, po.type, po.no).map(rc => <Node key={rc.type + rc.no} label="進貨單" d={rc} />)}
+                      <Node key={k} label="採購單" d={po} code="PURI07">
+                        {fromSrc(db.receipts, po.type, po.no).map(rc => <Node key={rc.type + rc.no} label="進貨單" d={rc} code="PURI09" />)}
                       </Node>
                     )
                   })}
                 </Node>
               ))}
             </Node>
-          ))}
-          {!orders.length && <div className="dim">目前沒有訂單。</div>}
+          )}
         </div>
       </div>
-      <div className="prog-status"><span className="cell mode">查詢</span><span className="cell">訂單筆數: {orders.length}</span><span className="cell grow" /></div>
+      <div className="prog-status"><span className="cell mode">查詢</span><span className="cell">展開訂單資訊: {o ? `${o.type}-${o.no}` : '-'}</span><span className="cell grow" /></div>
     </div>
   )
 }

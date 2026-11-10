@@ -121,6 +121,10 @@ const poCfg: DocConfig = {
     return k === 'date' ? { ...r, poDate: r.date } : r
   },
   totals: docTotals(['採購金額', '稅額', '合計']),
+  // 串查作業：選單照同學的專案
+  crossQuery: r => [{ label: '供應廠商資料建立作業', code: 'PURI01', arg: r.supplier },
+    { label: '品號資料建立作業', code: 'INVI02', arg: r.lines.find((l: { item: string }) => l.item)?.item }, null,
+    { label: '採購樹狀資訊查詢' }, { label: '廠商商品交易記錄查詢' }],
   browse: [['採購單別', r => r.type], ['採購單號', r => r.no], ['單據日期', r => r.date], ['供應廠商', r => r.supplier], ['廠商簡稱', (r, db) => names.supplier(db, r.supplier)], ['確認碼', r => r.status]],
   query: docQuery('採購單別', '採購單號'),
 }
@@ -187,7 +191,7 @@ const rcCfg: DocConfig = {
   query: docQuery('進貨單別', '進貨單號'),
 }
 
-export const PURI05 = ({ close }: ProgProps) => <DocProgram cfg={reqCfg} close={close} />
-export const PURI06 = ({ close }: ProgProps) => <DocProgram cfg={reqMaintCfg} close={close} />
-export const PURI07 = ({ close }: ProgProps) => <DocProgram cfg={poCfg} close={close} />
-export const PURI09 = ({ close }: ProgProps) => <DocProgram cfg={rcCfg} close={close} />
+export const PURI05 = (p: ProgProps) => <DocProgram cfg={reqCfg} {...p} />
+export const PURI06 = (p: ProgProps) => <DocProgram cfg={reqMaintCfg} {...p} />
+export const PURI07 = (p: ProgProps) => <DocProgram cfg={poCfg} {...p} />
+export const PURI09 = (p: ProgProps) => <DocProgram cfg={rcCfg} {...p} />

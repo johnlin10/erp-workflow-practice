@@ -24,7 +24,7 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
   const fileInput = useRef<HTMLInputElement>(null)
   const userName = db.users.find(u => u.id === user)?.name ?? user
 
-  const open = (code: string) => {
+  const open = (code: string, arg?: string) => {
     const def = PROGRAMS.find(p => p.code === code)
     if (!def) return
     if (code !== 'QUEUE' && !can(db, user, code, 'run')) {
@@ -34,12 +34,12 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
     z.current++
     setWins(ws => {
       const ex = ws.find(w => w.code === code)
-      if (ex) return ws.map(w => (w === ex ? { ...w, min: false, z: z.current } : w))
+      if (ex) return ws.map(w => (w === ex ? { ...w, min: false, z: z.current, arg: arg ?? w.arg } : w))
       const n = ws.length % 8
       // 開啟時整個視窗都在工作區內；工作區太小就縮小視窗（內容會捲動）
       const area = document.querySelector('.winlayer')!
       const x = Math.min(40 + n * 26, Math.max(0, area.clientWidth - def.w)), y = Math.min(8 + n * 26, Math.max(0, area.clientHeight - def.h))
-      return [...ws, { id: nextId.current++, code, x, y, w: Math.min(def.w, area.clientWidth - x), h: Math.min(def.h, area.clientHeight - y), z: z.current, min: false, max: false }]
+      return [...ws, { id: nextId.current++, code, x, y, w: Math.min(def.w, area.clientWidth - x), h: Math.min(def.h, area.clientHeight - y), z: z.current, min: false, max: false, arg }]
     })
   }
   const patch = (id: number, p: Partial<WinState>) => setWins(ws => ws.map(w => (w.id === id ? { ...w, ...p } : w)))
@@ -187,7 +187,7 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
               return (
                 <Window key={w.id} win={w} title={winTitle(def, db.company)} active={w.id === activeId}
                   onFocus={() => focus(w.id)} onClose={() => close(w.id)} onChange={p => patch(w.id, p)}>
-                  <WinTitle.Provider value={winTitle(def, db.company)}><C close={() => close(w.id)} /></WinTitle.Provider>
+                  <WinTitle.Provider value={winTitle(def, db.company)}><C close={() => close(w.id)} arg={w.arg} /></WinTitle.Provider>
                 </Window>
               )
             })}

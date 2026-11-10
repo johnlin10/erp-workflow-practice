@@ -25,6 +25,9 @@ describe('考試流程：報價 → 訂單 → 變更 → 轉請購 → 採購 �
     expect(q.no).toBe('202611001')
     expect(() => quoteToOrder(db, 'C211', q.no, blankOrder(db, D))).toThrow('尚未確認')
     confirmDoc(db, 'quote', 'C211', q.no, 'admin')
+    expect(() => quoteToOrder(db, 'C211', q.no, blankOrder(db, D))).toThrow('尚未客戶確認')
+    q.customerConfirmed = true // 工具列「客戶確認」
+    expect(() => unconfirmDoc(structuredClone(db), 'quote', 'C211', q.no)).toThrow('請先取消客戶確認')
 
     // 訂單（複製報價單）
     const o = quoteToOrder(db, 'C211', q.no, blankOrder(db, D))

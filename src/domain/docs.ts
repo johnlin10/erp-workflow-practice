@@ -218,6 +218,7 @@ export function unconfirmDoc(draft: DB, kind: DocKind, type: string, no: string)
   if (d.status !== 'Y') fail('單據尚未確認')
   const refs = referencedBy(draft, kind, type, no)
   if (refs.length) fail(`此單據已被下列單據引用，不可取消確認：\n${refs.join('\n')}`)
+  if (kind === 'quote' && (d as Quote).customerConfirmed) fail('報價單已客戶確認，請先取消客戶確認')
 
   if (kind === 'receipt' || kind === 'sale') {
     const mine = (m: DB['stock'][number]) => m.docKind === kind && m.docType === type && m.docNo === no
@@ -279,6 +280,7 @@ export function voidDoc(draft: DB, kind: DocKind, type: string, no: string) {
 export function quoteToOrder(db: DB, type: string, no: string, order: Order): Order {
   const q = mustFind(db, 'quote', type, no)
   if (q.status !== 'Y') fail('前置單據尚未確認，不可複製')
+  if (!q.customerConfirmed) fail('報價單尚未客戶確認，不可轉成訂單')
   return {
     ...order,
     customer: q.customer, sales: q.sales || order.sales, currency: q.currency, rate: q.rate,

@@ -282,3 +282,9 @@ select.fld { padding: 0 2px; }
 .tree-node { margin-left: 18px; line-height: 20px; }
 .tree-list > .tree-node { margin-left: 0; }
 .tree-node > summary { cursor: default; white-space: nowrap; }
+.tbtn-wrap { position: relative; display: inline-flex; }
+.cross-pop { min-width: 190px; }
+.cross-pop hr { border: 0; border-top: 1px solid #bbb; margin: 2px 4px; width: calc(100% - 8px); }
+.tree-body { flex-direction: row; }
+.tree-orders { flex: 0 0 410px; }
+.tree-list { flex: 1; }

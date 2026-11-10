@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Fragment, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { DB, DocKind } from '../db/schema'
 import { commit, useDb } from '../db/store'
 import { today } from '../domain/docs'
@@ -8,6 +8,7 @@ import { Check, DateBox, NumBox, Select, TextBox } from './fields'
 import { Icon } from './icons'
 import { ask, err, msgbox } from './msg'
 import { Picker, type PickDef } from './Picker'
+import { PROGRAMS } from '../programs/index'
 import { useSession, useWinTitle } from './session'
 
 export type Mode = 'browse' | 'add' | 'edit'
@@ -76,6 +77,8 @@ export type DocConfig = {
   confirm?: (draft: DB, r: R, user: string) => void
   unconfirm?: (draft: DB, r: R) => void
   voidIt?: (draft: DB, r: R) => void
+  /** 串查作業選單：code 是練習版有的作業才能點，arg 是要帶過去的資料鍵；null 是分隔線 */
+  crossQuery?: (r: R, db: DB) => ({ label: string; code?: string; arg?: string } | null)[]
   /** 工具列上額外的按鈕（報價單的客戶確認），run 回傳完成訊息 */
   extraTools?: { icon: string; label: string; on: (r: R) => boolean; run: (draft: DB, r: R) => string }[]
   status?: (r: R) => string
@@ -91,9 +94,9 @@ export type DocConfig = {
 }
 
 
-export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }) {
+export function DocProgram({ cfg, close, arg }: { cfg: DocConfig; close: () => void; arg?: string }) {
   const db = useDb()
-  const { user } = useSession()
+  const { user, open } = useSession()
   const [mode, setMode] = useState<Mode>('browse')
   const [keys, setKeys] = useState<string[]>([])
   const [idx, setIdx] = useState(-1)
@@ -108,6 +111,13 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
 
   const records = cfg.records(db)
   const byKey = useMemo(() => new Map(records.map(r => [cfg.key(r), r])), [records, cfg])
+  // 從其他作業串查過來：直接顯示那筆資料
+  useEffect(() => {
+    if (!arg || mode !== 'browse' || !byKey.has(arg)) return
+    const ks = keys.includes(arg) ? keys : [...keys, arg]
+    setKeys(ks); setIdx(ks.indexOf(arg))
+    setTab('detail')
+  }, [arg]) // eslint-disable-line react-hooks/exhaustive-deps
   const cur: R = mode === 'browse' ? byKey.get(keys[idx]) ?? null : edit
   const status = cur && cfg.status ? cfg.status(cur) : ''
   const lines: R[] = cur?.lines ?? []
@@ -196,6 +206,7 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
       { icon: 'unconfirm', label: '取消確認', on: !editing && status === 'Y' && !!cfg.unconfirm && allow('unconfirm'), run: doUnconfirm },
     ] : []),
     ...(cfg.extraTools ?? []).map(t => ({ icon: t.icon, label: t.label, on: !editing && !!cur && t.on(cur), run: () => run(() => { let m = ''; commit(d => { m = t.run(d, cur) }); msgbox(m) }) })),
+    ...(cfg.crossQuery ? [{ icon: 'cross', label: '串查作業', on: !editing && !!cur, run: () => setMenu(menu === 'cross' ? null : 'cross'), sep: true }] : []),
     ...(cfg.voidIt ? [{ icon: 'void', label: '作廢', on: !editing && status === 'N' && allow('void'), run: doVoid }] : []),
     ...(cfg.copyFrom ? [{ icon: 'copyFrom', label: '複製前置單別', on: mode === 'add', run: () => setCopyOpen(true), sep: true }] : []),
     ...(cfg.lines?.blank ? [{ icon: 'delLine', label: '刪除單身(選取列)', on: linesEditable && selLine >= 0 && selLine < lines.length, run: deleteLine }] : []),
@@ -336,7 +347,17 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
         {tools.map(t => (
           <Fragment key={t.label}>
             {t.sep && <span className="tsep" />}
-            <button className="tbtn" disabled={!t.on} title={t.label} aria-label={t.label} onClick={t.run}><Icon n={t.icon} size={24} /></button>
+            <span className="tbtn-wrap">
+              <button className="tbtn" disabled={!t.on} title={t.label} aria-label={t.label} onClick={e => { e.stopPropagation(); t.run() }}><Icon n={t.icon} size={24} /></button>
+              {t.icon === 'cross' && menu === 'cross' && cur && (
+                <div className="menu-pop cross-pop">
+                  {cfg.crossQuery!(cur, db).map((c, i) => c === null ? <hr key={i} /> : (() => {
+                    const ok = !!c.code && PROGRAMS.some(p => p.code === c.code)
+                    return <button key={c.label} disabled={!ok} title={ok ? '' : '練習版未提供此作業'} onClick={() => { setMenu(null); open(c.code!, c.arg) }}>{c.label}</button>
+                  })())}
+                </div>
+              )}
+            </span>
           </Fragment>
         ))}
       </div>

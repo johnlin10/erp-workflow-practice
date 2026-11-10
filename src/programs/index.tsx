@@ -11,7 +11,7 @@ export const PROGRAMS: ProgramDef[] = [
   { code: 'INVI02', name: '品號資料建立作業', sys: 'INV', folder: '基本資料管理', kind: 'I', comp: INVI02, w: 1150, h: 755 },
   { code: 'INVQ02', name: '庫存狀況查詢作業', sys: 'INV', folder: '查詢作業', kind: 'Q', comp: StockQuery, w: 820, h: 480, hideCode: true },
   { code: 'COPI01', name: '客戶資料建立作業', sys: 'COP', folder: '基本資料管理', kind: 'I', comp: COPI01, w: 1020, h: 670 },
-  { code: 'COPQ05', name: '訂單樹狀資訊查詢', sys: 'COP', folder: '查詢作業', kind: 'Q', comp: OrderTree, w: 820, h: 520 },
+  { code: 'COPQ05', name: '訂單樹狀資訊查詢', sys: 'COP', folder: '查詢作業', kind: 'Q', comp: OrderTree, w: 980, h: 630 },
   { code: 'COPI05', name: '報價單建立作業', sys: 'COP', folder: '日常異動處理', kind: 'I', comp: COPI05, ...BIG },
   { code: 'COPI06', name: '客戶訂單建立作業', sys: 'COP', folder: '日常異動處理', kind: 'I', comp: COPI06, ...BIG, h: 840 },
   { code: 'COPI07', name: '訂單變更單建立作業', sys: 'COP', folder: '日常異動處理', kind: 'I', comp: COPI07, ...BIG },
