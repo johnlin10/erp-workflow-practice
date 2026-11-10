@@ -125,6 +125,13 @@ select.fld { padding: 0 2px; }
 .win-btn.close:hover { background: #e81123; color: #fff; }
 .dlg-title .win-btn, .msgbox-title .win-btn { margin-left: auto; }
 .win-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.win-edge { position: absolute; touch-action: none; z-index: 2; }
+.win-edge.n, .win-edge.s { left: 6px; right: 6px; height: 6px; cursor: ns-resize; }
+.win-edge.e, .win-edge.w { top: 6px; bottom: 6px; width: 6px; cursor: ew-resize; }
+.win-edge.n { top: -3px; } .win-edge.s { bottom: -3px; } .win-edge.e { right: -3px; } .win-edge.w { left: -3px; }
+.win-edge.ne, .win-edge.nw, .win-edge.se, .win-edge.sw { width: 10px; height: 10px; }
+.win-edge.ne { top: -3px; right: -3px; cursor: nesw-resize; } .win-edge.sw { bottom: -3px; left: -3px; cursor: nesw-resize; }
+.win-edge.nw { top: -3px; left: -3px; cursor: nwse-resize; } .win-edge.se { bottom: -3px; right: -3px; cursor: nwse-resize; }
 .win-grip { position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; cursor: nwse-resize; touch-action: none; background: linear-gradient(135deg, transparent 50%, #999 50%, transparent 60%, #999 70%, transparent 80%); }
 
 /* ---------- 作業畫面 ---------- */
