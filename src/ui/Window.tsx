@@ -21,9 +21,9 @@ export function Window({ win, title, active, children, onFocus, onClose, onChang
     const d = drag.current
     if (!d) return
     const dx = e.clientX - d.mx, dy = e.clientY - d.my
-    const area = (e.currentTarget as HTMLElement).closest('.winlayer')!
-    // 標題列一定留在可見範圍內，才拖得回來
-    if (d.mode === 'move') onChange({ x: Math.min(Math.max(d.x + dx, 80 - d.w), area.clientWidth - 80), y: Math.min(Math.max(0, d.y + dy), area.clientHeight - 120) })
+    const area = (e.currentTarget as HTMLElement).closest('.winlayer') as HTMLElement
+    // 可以自由拖出畫面、往上蓋過頂部欄；只保留標題列在瀏覽器範圍內，才拖得回來
+    if (d.mode === 'move') onChange({ x: Math.min(Math.max(d.x + dx, 80 - d.w), area.clientWidth - 80), y: Math.min(Math.max(-area.getBoundingClientRect().top, d.y + dy), area.clientHeight - 30) })
     else onChange({ w: Math.max(420, d.w + dx), h: Math.max(260, d.h + dy) })
   }
   const end = () => { drag.current = null }
@@ -31,7 +31,7 @@ export function Window({ win, title, active, children, onFocus, onClose, onChang
   if (win.min) return null
   const style = win.max
     ? { left: 0, top: 0, width: '100%', height: '100%', zIndex: win.z }
-    : { left: win.x, top: win.y, width: win.w, height: win.h, maxHeight: `calc(100% - ${win.y}px)`, maxWidth: `calc(100% - ${Math.max(0, win.x)}px)`, zIndex: win.z }
+    : { left: win.x, top: win.y, width: win.w, height: win.h, zIndex: win.z }
 
   return (
     <div className={`win ${active ? 'active' : ''}`} style={style} onPointerDownCapture={onFocus} role="dialog" aria-label={title}>

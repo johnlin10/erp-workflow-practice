@@ -114,7 +114,7 @@ select.fld { padding: 0 2px; }
 .flow-report { position: absolute; width: 180px; height: 32px; background: linear-gradient(#a6cf66, #7eae3c); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #1a1a1a; clip-path: polygon(0 0, 100% 0, 100% 85%, 75% 100%, 50% 88%, 25% 78%, 0 90%); filter: drop-shadow(1px 1px 0 #6d8f3a); }
 
 /* ---------- 視窗 ---------- */
-.winlayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.winlayer { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
 .win { position: absolute; pointer-events: auto; display: flex; flex-direction: column; background: var(--face); border: 1px solid #8a8a8a; box-shadow: 0 4px 18px #0004; }
 .win.active { border-color: #5a7fb8; }
 .win-title { height: 30px; display: flex; align-items: center; gap: 6px; padding-left: 8px; background: #fff; color: #888; user-select: none; touch-action: none; }
