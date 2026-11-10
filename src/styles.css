@@ -162,7 +162,7 @@ select.fld { padding: 0 2px; }
 .flabel.req-label::before { content: '*'; color: #c00; }
 .fcell { white-space: nowrap; }
 
-.lines-row { display: flex; gap: 4px; min-height: 0; }
+.lines-row { display: flex; gap: 4px; flex-shrink: 0; }
 .lines { flex: 1; overflow: auto; border: 2px solid; border-color: var(--sunken); background: var(--rowA); min-height: 120px; }
 .grid { border-collapse: collapse; font-size: 13px; min-width: 100%; }
 .grid th { position: sticky; top: 0; z-index: 1; background: var(--face); border: 1px solid; border-color: #fff #404040 #404040 #fff; padding: 2px 4px; font-weight: normal; white-space: nowrap; text-align: center; font-size: 15px; }
