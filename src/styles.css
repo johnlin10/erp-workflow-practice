@@ -105,6 +105,7 @@ select.fld { padding: 0 2px; }
 .flow-node { position: absolute; border: 1px solid #7f95c2; background: linear-gradient(#c3d2ee, #94acd8); border-radius: 3px; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 2px 4px; white-space: pre-line; line-height: 1.2; color: #1a1a1a; cursor: default; box-shadow: 1px 2px 2px #0003; }
 .flow-node { isolation: isolate; }
 .flow-node.ok { cursor: pointer; }
+.flow-node.proc:not(.ok), .flow-node.diamond:not(.ok) { opacity: .45; box-shadow: none; } /* 練習版沒有的作業 */
 .flow-node.ok:hover { background: linear-gradient(#fff3c4, #f4cf63); border-color: #c79a2b; }
 .flow-node.sys { background: linear-gradient(#ffd9de, #f19aa6 55%, #f7c1c8); border-color: #d9808c; border-radius: 16px 22px 22px 16px / 50%; box-shadow: inset -12px 0 0 -6px #f9cdd3, 1px 2px 2px #0003; }
 .flow-node.event { background: radial-gradient(ellipse at 50% 35%, #f3eaf7, #c7b3d6); border-color: #9a86b0; border-radius: 50%; }
