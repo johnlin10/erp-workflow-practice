@@ -59,6 +59,10 @@
 - 預設只有 `admin` 一個使用者，其他使用者請在 ADMI10 自己建立（這本來就是考試的第一步）
 - 不提供列印、週期性排程
 
+## 資料來源
+
+預設的廠商資料（27 筆）取自同學的專案 [tailing-cloud/workflow-erp-conductor](https://github.com/tailing-cloud/workflow-erp-conductor)（MIT 授權）。已經在用的瀏覽器資料，重新整理後會自動補上缺少的廠商。
+
 ## 開發
 
 ```bash

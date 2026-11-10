@@ -14,7 +14,12 @@ function load(): DB {
     const raw = localStorage.getItem(KEY)
     if (!raw) return seed()
     const r = DBSchema.safeParse(JSON.parse(raw))
-    if (r.success) return r.data
+    if (r.success) {
+      // 預設資料後來新增的廠商，補進舊的練習資料裡（已有的代號不動）
+      const have = new Set(r.data.suppliers.map(s => s.id))
+      r.data.suppliers.push(...seed().suppliers.filter(s => !have.has(s.id)))
+      return r.data
+    }
     localStorage.setItem(KEY + ':broken', raw)
     loadProblem = `瀏覽器中的練習資料格式不正確，已改用預設資料。\n原資料已備份到 ${KEY}:broken。\n\n${formatIssues(r.error)}`
   } catch {
