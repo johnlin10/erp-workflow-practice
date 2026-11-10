@@ -10,3 +10,7 @@ export type ProgramDef = {
 
 export const Session = createContext<{ user: string; open: (code: string) => void }>({ user: '', open: () => {} })
 export const useSession = () => useContext(Session)
+
+/** 目前視窗的標題，對話框（複製前置單別等）沿用 */
+export const WinTitle = createContext('')
+export const useWinTitle = () => useContext(WinTitle)

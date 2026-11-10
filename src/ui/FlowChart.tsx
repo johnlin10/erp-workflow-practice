@@ -104,7 +104,7 @@ export function FlowChart({ sys, onOpen, has }: { sys: string; onOpen: (code: st
   const byId = Object.fromEntries(f.nodes.map(n => [n.id, n]))
   return (
     <div className="flow">
-      <div className="flow-title">▶▶ {f.title}</div>
+      <div className="flow-title"><b>▶▶</b>{f.title}</div>
       <div className="flow-canvas" style={{ width: f.w, height: f.h }}>
         <svg width={f.w} height={f.h} className="flow-edges">
           <defs>

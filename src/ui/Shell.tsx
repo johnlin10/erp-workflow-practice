@@ -3,27 +3,21 @@ import { PROGRAMS } from '../programs'
 import { exportDb, importDb, resetDb, useDb } from '../db/store'
 import { can } from '../domain/permissions'
 import { FlowChart } from './FlowChart'
+import { MENU, type TNode } from './menuTree'
 import { Icon } from './icons'
 import { ask, msgbox } from './msg'
-import { Session, type ProgramDef } from './session'
+import { Session, WinTitle, type ProgramDef } from './session'
 import { Window, type WinState } from './Window'
 
-const SYSTEMS: { id: ProgramDef['sys']; name: string }[] = [
-  { id: 'ADM', name: '管理維護系統' },
-  { id: 'INV', name: '庫存管理系統' },
-  { id: 'COP', name: '訂單管理系統' },
-  { id: 'PUR', name: '採購管理系統' },
-]
-const FOLDER_ORDER = ['基本資料管理', '日常異動處理', '請購資料管理', '批次作業', '查詢作業']
 
-export const winTitle = (p: ProgramDef, company: string) => `${p.name}${p.hideCode ? '' : `(${p.code})`}[${company}]`
+export const winTitle = (p: ProgramDef, company: string) => p.code === 'QUEUE' ? `${p.name} - [佇列工作管理員]` : `${p.name}${p.hideCode ? '' : `(${p.code})`}[${company}]`
 
 export function Shell({ user, onLogout }: { user: string; onLogout: () => void }) {
   const db = useDb()
   const [tab, setTab] = useState('常用')
   const [sys, setSys] = useState<string>('COP')
   const [search, setSearch] = useState('')
-  const [openNodes, setOpenNodes] = useState<Set<string>>(() => new Set(['root', 'COP', 'COP/日常異動處理']))
+  const [openNodes, setOpenNodes] = useState<Set<string>>(() => new Set(['系統+作業別', '系統+作業別/訂單管理系統', '系統+作業別/訂單管理系統/日常異動處理']))
   const [wins, setWins] = useState<WinState[]>([])
   const z = useRef(10)
   const nextId = useRef(1)
@@ -70,12 +64,37 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
     resetDb(); setWins([]); onLogout()
   }
 
+  const progIcon = (k?: string) => (k === 'B' ? 'progB' : k === 'Q' ? 'progQ' : 'progI')
   const progRow = (p: ProgramDef) => (
     <div key={p.code} className="tree-item leaf" onDoubleClick={() => open(p.code)} onKeyDown={e => e.key === 'Enter' && open(p.code)} tabIndex={0}
       title={`${p.name}${p.hideCode ? '' : `(${p.code})`}，雙擊開啟`}>
-      <Icon n={p.kind === 'B' ? 'progB' : p.kind === 'Q' ? 'progQ' : 'progI'} size={16} />{p.name}
+      <Icon n={progIcon(p.kind)} size={16} />{p.name}
     </div>
   )
+  // 程式樹：資料夾點一下展開，作業雙擊開啟；點系統會切換右邊的流程圖
+  const node = (n: TNode, path: string): React.ReactNode => {
+    const k = path ? `${path}/${n.name}` : n.name
+    if (!n.children) {
+      const ok = !!n.code && PROGRAMS.some(p => p.code === n.code)
+      const go = () => (ok ? open(n.code!) : notInPractice())
+      return (
+        <div key={k} className={`tree-item leaf ${ok ? '' : 'na'}`} tabIndex={0} onDoubleClick={go} onKeyDown={e => e.key === 'Enter' && go()}
+          title={ok ? `${n.name}，雙擊開啟` : '練習版未提供此作業'}>
+          <Icon n={progIcon(n.kind)} size={16} />{n.name}
+        </div>
+      )
+    }
+    const isOpen = openNodes.has(k)
+    return (
+      <div key={k}>
+        <div className={`tree-item ${n.sys && sys === n.sys ? 'sel' : ''}`} onClick={() => { toggle(k); if (n.sys) setSys(n.sys) }}>
+          <span className="twisty">{n.children.length || n.sys !== undefined ? (isOpen ? '⌄' : '›') : ''}</span>
+          <Icon n={path ? (isOpen ? 'folderOpen' : 'folder') : 'tree'} size={16} />{n.name}
+        </div>
+        {isOpen && n.children.length > 0 && <div className="tree-indent">{n.children.map(c => node(c, k))}</div>}
+      </div>
+    )
+  }
 
   return (
     <Session.Provider value={{ user, open }}>
@@ -115,6 +134,10 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
                 <label>總資料筆數限制 <select disabled><option>20</option></select></label>
               </div>
             </RGroup>
+            <RGroup label="E-Service">
+              <RBtn icon="question" label="問答集" onClick={notInPractice} />
+              <RBtn icon="info" label="文字客服" onClick={notInPractice} />
+            </RGroup>
             <RGroup label="登錄">
               <RBtn icon="relogin" label="重新登入" onClick={onLogout} />
               <RBtn icon="exit" label="離開" onClick={onLogout} />
@@ -142,33 +165,7 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
             <div className="search-row"><span>檢視類別</span><select><option>系統+作業別</option></select></div>
             <div className="tree">
               {matches ? (matches.length ? matches.map(progRow) : <div className="tree-empty">找不到符合的作業</div>) : (
-                <>
-                  <div className="tree-item" onClick={() => toggle('root')}>
-                    <span className="twisty">{openNodes.has('root') ? '⌄' : '›'}</span>🗂 系統+作業別
-                  </div>
-                  {openNodes.has('root') && SYSTEMS.map(s => (
-                    <div key={s.id} className="tree-indent">
-                      <div className={`tree-item ${sys === s.id ? 'sel' : ''}`} onClick={() => { toggle(s.id); setSys(s.id) }}>
-                        <span className="twisty">{openNodes.has(s.id) ? '⌄' : '›'}</span>
-                        <Icon n={openNodes.has(s.id) ? 'folderOpen' : 'folder'} size={16} />{s.name}
-                      </div>
-                      {openNodes.has(s.id) && FOLDER_ORDER.map(f => {
-                        const ps = PROGRAMS.filter(p => p.sys === s.id && p.folder === f)
-                        if (!ps.length) return null
-                        const k = `${s.id}/${f}`
-                        return (
-                          <div key={k} className="tree-indent">
-                            <div className="tree-item" onClick={() => toggle(k)}>
-                              <span className="twisty">{openNodes.has(k) ? '⌄' : '›'}</span>
-                              <Icon n={openNodes.has(k) ? 'folderOpen' : 'folder'} size={16} />{f}
-                            </div>
-                            {openNodes.has(k) && <div className="tree-indent">{ps.map(progRow)}</div>}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ))}
-                </>
+                node(MENU, '')
               )}
             </div>
           </div>
@@ -187,7 +184,7 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
               return (
                 <Window key={w.id} win={w} title={winTitle(def, db.company)} active={w.id === activeId}
                   onFocus={() => focus(w.id)} onClose={() => close(w.id)} onChange={p => patch(w.id, p)}>
-                  <C close={() => close(w.id)} />
+                  <WinTitle.Provider value={winTitle(def, db.company)}><C close={() => close(w.id)} /></WinTitle.Provider>
                 </Window>
               )
             })}

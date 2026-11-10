@@ -2,18 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { isDate, today } from '../domain/docs'
 import { Icon } from './icons'
 
-type Base = { ro?: boolean; cls?: string; w?: number | string; title?: string; align?: 'left' | 'right' }
+/** ro：永遠唯讀的欄位（灰底）；lock：瀏覽模式暫時不能改，但保留原本的底色 */
+type Base = { ro?: boolean; lock?: boolean; cls?: string; w?: number | string; title?: string; align?: 'left' | 'right' }
 const css = (b: Base, extra = '') => `fld ${b.cls ?? ''} ${b.ro ? 'ro' : ''} ${extra}`
+const off = (b: Base) => !!(b.ro || b.lock)
 
 export function TextBox({ value, onChange, ...b }: Base & { value: string; onChange?: (v: string) => void }) {
-  return <input className={css(b)} style={{ width: b.w, textAlign: b.align }} value={value ?? ''} readOnly={b.ro} title={b.title}
+  return <input className={css(b)} style={{ width: b.w, textAlign: b.align }} value={value ?? ''} readOnly={off(b)} title={b.title}
     onChange={e => onChange?.(e.target.value)} />
 }
 
 export function NumBox({ value, onChange, ...b }: Base & { value: number; onChange?: (v: number) => void }) {
   const [s, setS] = useState(String(value ?? 0))
   useEffect(() => { if (Number(s) !== value) setS(String(value ?? 0)) }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
-  return <input className={css(b, 'num')} style={{ width: b.w }} value={s} readOnly={b.ro} inputMode="decimal"
+  return <input className={css(b, 'num')} style={{ width: b.w }} value={s} readOnly={off(b)} inputMode="decimal"
     onChange={e => {
       const t = e.target.value
       if (!/^-?\d*\.?\d*$/.test(t)) return
@@ -27,7 +29,7 @@ export function DateBox({ value, onChange, ...b }: Base & { value: string; onCha
   const bad = !!value && !isDate(value)
   return (
     <span className="fld-wrap">
-      <input className={css(b, `date ${bad ? 'bad' : ''}`)} style={{ width: b.w ?? 116 }} value={value || (b.ro ? '  /  /  ' : '')} readOnly={b.ro}
+      <input className={css(b, `date ${bad ? 'bad' : ''}`)} style={{ width: b.w ?? 116 }} value={value || (off(b) ? '  /  /  ' : '')} readOnly={off(b)}
         placeholder="YYYY/MM/DD" title={bad ? '日期格式：YYYY/MM/DD' : undefined}
         onChange={e => onChange?.(e.target.value)}
         onBlur={e => { // 允許輸入 20261109 這種格式
@@ -35,7 +37,7 @@ export function DateBox({ value, onChange, ...b }: Base & { value: string; onCha
           if (/^\d{8}$/.test(t)) onChange?.(`${t.slice(0, 4)}/${t.slice(4, 6)}/${t.slice(6)}`)
         }} />
       {b.ro ? <span className="cal-gap" /> : (
-        <button type="button" className="fld-icon" title="選擇日期" onClick={() => {
+        <button type="button" className="fld-icon" title="選擇日期" disabled={b.lock} onClick={() => {
           const h = hidden.current
           if (!h) return
           h.value = (isDate(value) ? value : today()).replace(/\//g, '-')
@@ -50,18 +52,18 @@ export function DateBox({ value, onChange, ...b }: Base & { value: string; onCha
   )
 }
 
-export function Check({ value, onChange, label, ro }: { value: boolean; onChange?: (v: boolean) => void; label: string; ro?: boolean }) {
+export function Check({ value, onChange, label, ro, lock }: { value: boolean; onChange?: (v: boolean) => void; label: string; ro?: boolean; lock?: boolean }) {
   return (
     <label className={`chk ${ro ? 'ro' : ''}`}>
-      <input type="checkbox" checked={!!value} disabled={ro} onChange={e => onChange?.(e.target.checked)} />
+      <input type="checkbox" checked={!!value} disabled={ro || lock} onChange={e => onChange?.(e.target.checked)} />
       <span>{label}</span>
     </label>
   )
 }
 
-export function Select({ value, onChange, opts, ro, w }: { value: string; onChange?: (v: string) => void; opts: [string, string][]; ro?: boolean; w?: number }) {
+export function Select({ value, onChange, opts, ro, lock, w, cls }: { value: string; onChange?: (v: string) => void; opts: [string, string][]; ro?: boolean; lock?: boolean; w?: number; cls?: string }) {
   return (
-    <select className={`fld ${ro ? 'ro' : ''}`} style={{ width: w }} value={value} disabled={ro} onChange={e => onChange?.(e.target.value)}>
+    <select className={`fld ${cls ?? ''} ${ro ? 'ro' : ''} ${lock ? 'lock' : ''}`} style={{ width: w }} value={value} disabled={ro || lock} onChange={e => onChange?.(e.target.value)}>
       <option value="" />
       {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
     </select>

@@ -33,7 +33,7 @@ export function Picker({ def, db, rec, onPick, onClose }: { def: PickDef; db: DB
   return (
     <div className="modal-mask" onKeyDown={e => { if (e.key === 'Escape') onClose(); if (e.key === 'Enter') pick(rows[sel]) }}>
       <div className="dlg picker" role="dialog" aria-label="開窗查詢">
-        <div className="dlg-title"><Icon n="app" size={18} />{def.title ?? '開窗查詢'}<button className="win-btn close" onClick={onClose}>✕</button></div>
+        <div className="dlg-title"><Icon n="app" size={18} /><span className="grow">開窗查詢</span><button className="win-btn close" onClick={onClose}>✕</button></div>
         <div className="picker-bar">
           <button onClick={() => setSel(0)} title="第一筆"><Icon n="first" size={18} /></button>
           <button onClick={() => setSel(s => Math.max(0, s - 1))} title="上一筆"><Icon n="prev" size={18} /></button>
@@ -49,7 +49,7 @@ export function Picker({ def, db, rec, onPick, onClose }: { def: PickDef; db: DB
             <thead><tr><th className="rh" />{def.cols.map(([l], i) => <th key={l} className={i === col ? 'pk' : ''}>{l}</th>)}</tr></thead>
             <tbody>
               {rows.map((r: Row, i: number) => (
-                <tr key={def.val(r) + i} className={`${i % 2 ? 'alt' : ''} ${i === sel ? 'sel' : ''}`} onClick={() => setSel(i)} onDoubleClick={() => pick(r)}>
+                <tr key={def.val(r) + i} className={`${i % 2 ? 'alt' : ''} ${i === sel ? 'cur' : ''}`} onClick={() => setSel(i)} onDoubleClick={() => pick(r)}>
                   <td className="rh">{i === sel ? '▶' : ''}</td>
                   {def.cols.map(([l, f]) => <td key={l}>{f(r)}</td>)}
                 </tr>

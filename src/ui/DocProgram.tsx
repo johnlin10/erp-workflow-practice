@@ -8,7 +8,7 @@ import { Check, DateBox, NumBox, Select, TextBox } from './fields'
 import { Icon } from './icons'
 import { ask, err, msgbox } from './msg'
 import { Picker, type PickDef } from './Picker'
-import { useSession } from './session'
+import { useSession, useWinTitle } from './session'
 
 export type Mode = 'browse' | 'add' | 'edit'
 type R = any
@@ -28,6 +28,10 @@ export type FieldDef = {
   mask?: 'price' | 'cost'
   /** t='ro' 時的顯示內容 */
   show?: (r: R, db: DB) => string | number
+  /** 欄位後面的文字，例如「萬」「人」 */
+  suffix?: string
+  /** 同一格裡接在後面的其他欄位，例如「版次 [0000] □不控管信用額度」 */
+  with?: FieldDef[]
 }
 export type Rows = (FieldDef | null)[][]
 
@@ -85,7 +89,6 @@ export type DocConfig = {
   beforeAdd?: (db: DB, setEdit: (r: R) => void) => void
 }
 
-const STATUS_NAME: Record<string, string> = { N: '未確認', Y: '已確認', V: '作廢' }
 
 export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }) {
   const db = useDb()
@@ -210,35 +213,46 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
   }
   const openPick = (def: PickDef, apply: (row: R) => void) => setPicker({ def, onPick: apply })
 
-  const renderField = (f: FieldDef) => {
-    const ro = fieldRo(f)
+  const renderField = (f: FieldDef, inline = false): ReactNode => {
+    // 原系統：永遠唯讀的欄位是灰底；其他欄位在瀏覽模式下也保留青色（主鍵）、黃色（必填）、白色
+    const fixed = f.t === 'ro' || f.ro === true || (!!f.mask && vis(f.mask) !== 'general')
+    const off = fieldRo(f)
+    const ro = off && fixed
+    const lock = off && !fixed
     const v = cur?.[f.k]
     const cls = f.pk ? 'pk' : f.req ? 'req' : ''
     const masked = f.mask && vis(f.mask) === 'hidden'
-    if (f.t === 'check') return <td colSpan={2 * (f.span ?? 1)} className="fcell" key={f.k}><Check label={f.label} value={!!v} ro={ro} onChange={x => setField(f.k, x)} /></td>
+    const check = <Check key={f.k} label={f.label} value={!!v} ro={ro} lock={lock} onChange={x => setField(f.k, x)} />
+    if (f.t === 'check' && inline) return check
+    if (f.t === 'check') return <td colSpan={2 * (f.span ?? 1)} className="fcell" key={f.k}>{check}</td>
     let input: ReactNode
     if (masked) input = <TextBox value="****" ro w={f.w ?? 140} />
     else if (f.t === 'ro') input = <TextBox value={cur ? String(f.show ? f.show(cur, db) : v ?? '') : ''} ro w={f.w ?? 140} cls={cls} align={typeof v === 'number' ? 'right' : undefined} />
-    else if (f.t === 'num') input = <NumBox value={v ?? 0} ro={ro} cls={cls} w={f.w ?? 140} onChange={x => setField(f.k, x)} />
-    else if (f.t === 'date') input = <DateBox value={v ?? ''} ro={ro} cls={cls} w={f.w} onChange={x => setField(f.k, x)} />
-    else if (f.t === 'pw') input = <input type="password" className={`fld ${cls} ${ro ? 'ro' : ''}`} style={{ width: f.w ?? 300 }} readOnly={ro} value={v ?? ''} onChange={e => setField(f.k, e.target.value)} autoComplete="new-password" />
-    else if (f.t === 'select') input = <Select value={v ?? ''} ro={ro} opts={f.opts ?? []} w={f.w ?? 160} onChange={x => setField(f.k, x)} />
-    else input = <TextBox value={v ?? ''} ro={ro} cls={cls} w={f.w ?? 140} onChange={x => setField(f.k, x)} />
+    else if (f.t === 'num') input = <NumBox value={v ?? 0} ro={ro} lock={lock} cls={cls} w={f.w ?? 140} onChange={x => setField(f.k, x)} />
+    else if (f.t === 'date') input = <DateBox value={v ?? ''} ro={ro} lock={lock} cls={cls} w={f.w} onChange={x => setField(f.k, x)} />
+    else if (f.t === 'pw') input = <input type="password" className={`fld ${cls} ${ro ? 'ro' : ''}`} style={{ width: f.w ?? 300 }} readOnly={off} value={v ?? ''} onChange={e => setField(f.k, e.target.value)} autoComplete="new-password" />
+    else if (f.t === 'select') input = <Select value={v ?? ''} ro={ro} lock={lock} cls={cls} opts={f.opts ?? []} w={f.w ?? 160} onChange={x => setField(f.k, x)} />
+    else input = <TextBox value={v ?? ''} ro={ro} lock={lock} cls={cls} w={f.w ?? 140} onChange={x => setField(f.k, x)} />
+    const body = (
+      <span className="fld-wrap" key={f.k}>
+        {inline && f.label && <span className="flabel inl">{f.label}</span>}
+        {input}
+        {f.pick && (
+          <button type="button" className="fld-icon" disabled={off} title="開窗查詢"
+            onClick={() => openPick(f.pick!, row => f.pickApply ? setEdit((e: R) => f.pickApply!(e, row, db)) : setField(f.k, f.pick!.val(row)))}>
+            <Icon n={f.pick.icon ?? 'pick'} size={18} />
+          </button>
+        )}
+        {f.suffix && <span className="fname">{f.suffix}</span>}
+        {f.name && cur && <span className="fname">{f.name(db, cur)}</span>}
+        {f.with?.map(x => renderField(x, true))}
+      </span>
+    )
+    if (inline) return body
     return (
       <Fragment key={f.k}>
         <td className="flabel">{f.label}</td>
-        <td className="fcell" colSpan={2 * (f.span ?? 1) - 1}>
-          <span className="fld-wrap">
-            {input}
-            {f.pick && (
-              <button type="button" className="fld-icon" disabled={ro} title="開窗查詢"
-                onClick={() => openPick(f.pick!, row => f.pickApply ? setEdit((e: R) => f.pickApply!(e, row, db)) : setField(f.k, f.pick!.val(row)))}>
-                <Icon n={f.pick.icon ?? 'pick'} size={18} />
-              </button>
-            )}
-            {f.name && cur && <span className="fname">{f.name(db, cur)}</span>}
-          </span>
-        </td>
+        <td className="fcell" colSpan={2 * (f.span ?? 1) - 1}>{body}</td>
       </Fragment>
     )
   }
@@ -284,7 +298,7 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
           </tr></thead>
           <tbody>
             {rows.map((l, i) => (
-              <tr key={i} className={`${i === selLine ? 'sel' : ''} ${l === null ? 'newrow' : ''}`} onClick={() => setSelLine(i)}>
+              <tr key={i} className={`${i % 2 ? 'alt' : ''} ${i === selLine ? 'cur' : ''} ${l === null ? 'newrow' : ''}`} onClick={() => setSelLine(i)}>
                 <td className="rh">{l === null ? '▶' : i === selLine ? (editable ? 'I' : '▶') : ''}</td>
                 {cfg.lines!.cols.map(c => <td key={c.k} className={c.t === 'num' ? 'num' : ''}>{renderCell(c, l ?? {}, i, l === null)}</td>)}
               </tr>
@@ -327,7 +341,6 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
       <div className="tabs main-tabs">
         <button className={tab === 'detail' ? 'on' : ''} onClick={() => setTab('detail')}>詳細欄位</button>
         <button className={tab === 'browse' ? 'on' : ''} onClick={() => !editing && setTab('browse')}>資料瀏覽</button>
-        {status && <span className={`status-badge s${status}`}>{STATUS_NAME[status]}</span>}
       </div>
 
       {tab === 'detail' ? (
@@ -342,7 +355,7 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
           {cfg.lines && (
             <div className="lines-row">
               {renderLines(linesEditable)}
-              {cfg.side && cur && cfg.side({ rec: cur, line: selLine, editable: linesEditable, setLine: patchLine })}
+              {cfg.side && cfg.side({ rec: cur ?? { lines: [] }, line: selLine, editable: linesEditable, setLine: patchLine })}
             </div>
           )}
           {totals && (
@@ -365,7 +378,7 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
                   const r = byKey.get(k)
                   if (!r) return null
                   return (
-                    <tr key={k} className={`${i % 2 ? 'alt' : ''} ${i === idx ? 'sel' : ''}`} onClick={() => setIdx(i)} onDoubleClick={() => setTab('detail')}>
+                    <tr key={k} className={`${i % 2 ? 'alt' : ''} ${i === idx ? 'cur' : ''}`} onClick={() => setIdx(i)} onDoubleClick={() => setTab('detail')}>
                       <td className="rh">{i === idx ? '▶' : ''}</td>
                       {cfg.browse.map(([l, f]) => <td key={l}>{f(r, db)}</td>)}
                     </tr>
@@ -380,7 +393,7 @@ export function DocProgram({ cfg, close }: { cfg: DocConfig; close: () => void }
 
       <div className="prog-status">
         <span className="cell mode">{mode === 'browse' ? '瀏覽' : mode === 'add' ? '新增' : '修改'}</span>
-        <span className="cell">{cfg.lines ? `單身資料筆數: ${lines.length}` : keys.length ? `${idx + 1} / ${keys.length}` : ''}</span>
+        <span className="cell">{cfg.lines ? `單身資料筆數: ${lines.length}` : ''}</span>
         <span className="cell grow">{selItem}</span>
         <span className="cell">127.0.0.1 - 211</span>
       </div>
@@ -435,6 +448,7 @@ function QueryDialog({ fields, onOk, onClose }: { fields: DocConfig['query']; on
 
 // ---------- 複製前置單別 ----------
 function CopyDialog({ def, db, onOk, onClose }: { def: CopyDef; db: DB; onOk: (k: DocKind, type: string, no: string) => void; onClose: () => void }) {
+  const title = useWinTitle()
   const [src, setSrc] = useState(0)
   const [type, setType] = useState('')
   const [no, setNo] = useState('')
@@ -446,7 +460,7 @@ function CopyDialog({ def, db, onOk, onClose }: { def: CopyDef; db: DB; onOk: (k
   return (
     <div className="modal-mask" onKeyDown={e => e.key === 'Escape' && onClose()}>
       <div className="dlg copy" role="dialog" aria-label="複製前置單別">
-        <div className="dlg-title"><Icon n="app" size={18} />複製前置單別<button className="win-btn close" onClick={onClose}>✕</button></div>
+        <div className="dlg-title"><Icon n="app" size={18} /><span className="grow">{title}</span><button className="win-btn">─</button><button className="win-btn">☐</button><button className="win-btn close" onClick={onClose}>✕</button></div>
         <div className="copy-body">
           <table className="form-table"><tbody>
             <tr><td className="flabel">複製來源</td><td>

@@ -401,7 +401,7 @@ export function deleteOrderChange(draft: DB, key: string) {
 
 // ---------- 請購資料維護 ----------
 export type ReqLinePatch = Pick<Requisition['lines'][number],
-  'buyer' | 'supplier' | 'poQty' | 'price' | 'deliveryDate' | 'locked' | 'urgent' | 'poRemark'>
+  'buyer' | 'supplier' | 'warehouse' | 'poQty' | 'price' | 'deliveryDate' | 'locked' | 'urgent' | 'poRemark'>
 export function maintainReqLine(draft: DB, type: string, no: string, seq: string, patch: ReqLinePatch) {
   const r = mustFind(draft, 'requisition', type, no)
   if (r.status !== 'Y') fail('請購單尚未確認，不可維護')
@@ -409,6 +409,7 @@ export function maintainReqLine(draft: DB, type: string, no: string, seq: string
   if (l.poNo) fail(`此明細已轉採購單 ${l.poType}-${l.poNo}，不可修改`)
   if (patch.supplier && !draft.suppliers.some(s => s.id === patch.supplier)) fail(`供應廠商 ${patch.supplier} 不存在`)
   if (patch.buyer && !draft.employees.some(e => e.id === patch.buyer)) fail(`採購人員 ${patch.buyer} 不存在`)
+  if (!draft.warehouses.some(w => w.id === patch.warehouse)) fail(`交貨庫別 ${patch.warehouse} 不存在`)
   if (patch.poQty < 0) fail('採購數量不可小於 0')
   if (patch.deliveryDate && !isDate(patch.deliveryDate)) fail('交貨日格式錯誤')
   Object.assign(l, patch)

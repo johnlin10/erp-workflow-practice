@@ -9,7 +9,7 @@ import { DocProgram, type DocConfig } from '../ui/DocProgram'
 import { err } from '../ui/msg'
 import { names, PK } from '../ui/Picker'
 import type { ProgProps } from '../ui/session'
-import { C, docBase, docQuery, docTotals, dueDefault, F, headerChange, lineChange, pad4, ph, roText } from './common'
+import { C, docBase, docQuery, docTotals, dueDefault, F, headerChange, lineChange, pad4, ph, roText, X } from './common'
 
 type R = any
 const docName = (db: R, t: string) => names.docType(db, t)
@@ -20,19 +20,19 @@ const quoteCfg: DocConfig = {
   ...docBase('quote'),
   blank: db => blankQuote(db, today()),
   header: [
-    [F.docType('quote', '報價單別'), F.date, { k: 'quoteDate', label: '報價日期', t: 'ro', w: 120 }],
-    [F.docNo('報價單號'), { k: '_ver', label: '版次', t: 'ro', w: 70, show: () => '0000' }, { k: 'customerConfirmed', label: '客戶確認', t: 'check' }, F.confirmer],
+    [F.docType('quote', '報價單別'), F.date, { k: 'quoteDate', label: '報價日期', t: 'ro', w: 130 }],
+    [F.docNo('報價單號'), { k: '_ver', label: '版次', t: 'ro', w: 72, show: () => '', with: [{ k: 'customerConfirmed', label: '客戶確認', t: 'check' }] }, F.confirmer],
   ],
   tabs: [
     { label: '交易資料', rows: [
-      [F.customer, F.taxCode, roText('列印格式', '', 160)],
-      [F.employee('sales', '業務人員'), F.taxType, roText('傳送次數', '0', 60)],
-      [F.currency('幣別'), F.taxRate, F.sign],
-      [F.rate, { k: 'priceTerm', label: '價格條件', w: 240 }, null],
+      [F.customer, F.taxCode, null],
+      [F.employee('sales', '業務人員'), F.taxType, X('列印格式', 200, { t: 'select', opts: [] })],
+      [F.currency('幣別'), F.taxRate, roText('傳送次數', '', 60, [roText('列印', '', 60)])],
+      [F.rate, { k: 'priceTerm', label: '價格條件', w: 220 }, F.sign],
       [{ k: '_multi', label: '單身多稅率', t: 'check', ro: true }, F.payTerm, null],
     ] },
     { label: '其他資料', rows: [[F.remark]] },
-    ph('國外資料'),
+    ph('國外資料'), ph('資料瀏覽'),
   ],
   onField: (r, k, db) => {
     r = headerChange(r, k, db)
@@ -55,20 +55,20 @@ const orderCfg: DocConfig = {
   ...docBase('order'),
   blank: db => blankOrder(db, today()),
   header: [
-    [F.docType('order', '訂單單別'), F.date, { k: '_tr', label: '拋轉狀態', t: 'ro', w: 160, show: r => (r.transferred ? 'Y:已拋轉' : 'N:未拋轉') }],
-    [F.docNo('訂單單號'), F.customer, { k: 'orderDate', label: '訂單日期', t: 'ro', w: 120 }],
-    [roText('流程代號', '', 70), { k: '_ver', label: '版次', t: 'ro', w: 70, show: r => pad4(r.version) }, F.confirmer],
-    [roText('收入遞延天數', '0', 70), { k: 'noCreditCheck', label: '不控管信用額度', t: 'check' }, roText('EBO拋轉狀態', '不需拋轉', 160)],
+    [F.docType('order', '訂單單別'), F.date, { k: '_tr', label: '拋轉狀態', t: 'ro', w: 180, show: r => (r.transferred ? 'Y:已拋轉' : 'N:未拋轉') }],
+    [F.docNo('訂單單號'), F.customer, { k: 'orderDate', label: '訂單日期', t: 'ro', w: 180 }],
+    [X('流程代號', 70, { pick: { icon: 'pick', cols: [['流程代號', r => r.id]], rows: () => [], val: r => r.id } }), { k: '_ver', label: '版次', t: 'ro', w: 80, show: r => pad4(r.version), with: [{ k: 'noCreditCheck', label: '不控管信用額度', t: 'check' }] }, F.confirmer],
+    [X('收入遞延天數', 70, { t: 'num' }), null, roText('EBO拋轉狀態', '不需拋轉', 230)],
   ],
   tabs: [
     { label: '交易資料一', rows: [
-      [{ k: 'dept', label: '部門代號', w: 120 }, F.taxCode, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
-      [F.employee('sales', '業務人員'), F.taxType, roText('傳送次數', '', 80)],
-      [F.plant('出貨廠別'), F.taxRate, roText('列印', '', 60)],
-      [F.currency('交易幣別'), { k: '_dep', label: '訂金分批', t: 'check', ro: true }, F.sign],
-      [F.rate, roText('訂金比率', '. %', 80), null],
-      [{ k: 'customerPo', label: '客戶單號', w: 200 }, F.payTerm, null],
-      [null, { k: 'priceTerm', label: '價格條件', w: 320 }, null],
+      [{ k: 'dept', label: '部門代號', w: 200, pick: { icon: 'tree', cols: [['部門代號', r => r.id]], rows: () => [], val: r => r.id } }, F.taxCode, null],
+      [F.employee('sales', '業務人員'), F.taxType, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
+      [F.plant('出貨廠別'), F.taxRate, roText('傳送次數', '', 170)],
+      [F.currency('交易幣別'), { k: '_dep', label: '訂金分批', t: 'check', ro: true }, roText('列印', '', 80)],
+      [F.rate, roText('訂金比率', '. %', 170), F.sign],
+      [{ k: 'customerPo', label: '客戶單號', w: 360 }, F.payTerm, null],
+      [null, { k: 'priceTerm', label: '價格條件', w: 700, span: 2 }],
     ] },
     { label: '交易資料二', rows: [[F.remark], [{ k: '_src', label: '前置單據', t: 'ro', w: 220, show: r => (r.srcType ? `${r.srcType}-${r.srcNo}` : '') }]] },
     { label: '送貨資料', rows: [[{ k: '_addr', label: '送貨地址', t: 'ro', w: 420, show: (r, db) => db.customers.find((c: R) => c.id === r.customer)?.address ?? '' }]] },
@@ -115,22 +115,22 @@ const changeCfg: DocConfig = {
     customer: '', dept: '', sales: '', customerPo: '', priceTerm: '', payTerm: '', currency: '', rate: 1, taxCode: '', taxType: '', taxRate: 0, lines: [],
   }),
   header: [
-    [{ k: 'orderType', label: '訂單單別', pk: true, ro: true, w: 90 }, { k: 'customer', label: '客戶代號', t: 'ro', w: 110, name: (db, r) => names.customer(db, r.customer) }, { k: 'date', label: '變更日期', t: 'ro', w: 120 }],
     [{
-      k: 'orderNo', label: '訂單單號', pk: true, w: 150, ro: (_r, m) => m !== 'add',
-      pick: { title: '開窗查詢 - 已確認訂單', icon: 'pick', val: r => r.no, rows: openOrders, cols: [['訂單單別', r => r.type], ['訂單單號', r => r.no], ['客戶代號', r => r.customer], ['訂單日期', r => r.date], ['版次', r => pad4(r.version)]] },
+      k: 'orderType', label: '訂單單別', pk: true, w: 90, ro: (_r, m) => m !== 'add',
+      pick: { title: '開窗查詢 - 已確認訂單', icon: 'pick', val: r => r.type, rows: openOrders, cols: [['訂單單別', r => r.type], ['訂單單號', r => r.no], ['客戶代號', r => r.customer], ['訂單日期', r => r.date], ['版次', r => pad4(r.version)]] },
       pickApply: (r, row, db) => { try { return newOrderChange(db, row.type, row.no, r.date || today()) } catch (e) { err(e); return r } },
-    }, { k: '_odate', label: '訂單日期', t: 'ro', w: 120, show: (r, db) => db.orders.find((o: R) => o.type === r.orderType && o.no === r.orderNo)?.date ?? '' }, F.confirmer],
-    [{ k: 'ver', label: '變更版次', pk: true, t: 'ro', w: 70, show: r => (r.orderNo ? pad4(r.ver) : '') }, { k: 'closeAll', label: '整張結案', t: 'check' }, { k: '_noc', label: '不控管信用額度', t: 'check', ro: true }],
-    [F.date, { k: 'reason', label: '變更原因', req: true, w: 260 }, F.sign],
-    [roText('收入遞延天數', '0', 70), null, roText('EBO拋轉狀態', '不需拋轉', 160)],
+    }, { k: 'customer', label: '客戶代號', t: 'ro', w: 150, name: (db, r) => names.customer(db, r.customer) }, { k: '_cdate', label: '變更日期', t: 'ro', w: 130, show: r => r.date }],
+    [{ k: 'orderNo', label: '訂單單號', pk: true, w: 200, ro: (_r, m) => m !== 'add' }, { k: '_odate', label: '訂單日期', t: 'ro', w: 150, show: (r, db) => db.orders.find((o: R) => o.type === r.orderType && o.no === r.orderNo)?.date ?? '' }, F.confirmer],
+    [{ k: 'ver', label: '變更版次', pk: true, t: 'ro', w: 96, show: r => (r.orderNo ? pad4(r.ver) : ''), with: [{ k: 'closeAll', label: '整張結案', t: 'check' }] }, { k: '_dep', label: '訂金分批', t: 'check', ro: true, with: [{ k: '_noc', label: '不控管信用額度', t: 'check', ro: true }] }, roText('', '', 130)],
+    [{ ...F.date, w: 130 }, { k: 'reason', label: '變更原因', req: true, w: 260 }, F.sign],
+    [X('收入遞延天數', 130, { t: 'num' }), null, roText('EBO拋轉狀態', '不需拋轉', 250)],
   ],
   tabs: [
     { label: '交易資料一', rows: [
-      [{ k: 'dept', label: '部門代號', w: 120 }, { k: 'customerPo', label: '客戶單號', w: 200 }, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
-      [F.employee('sales', '業務人員'), { k: 'priceTerm', label: '價格條件', w: 220 }, roText('傳送次數', '', 60)],
-      [{ k: '_plant', label: '出貨廠別', t: 'ro', w: 90, show: (r, db) => db.orders.find((o: R) => o.type === r.orderType && o.no === r.orderNo)?.plant ?? '' }, F.payTerm, roText('列印', '', 60)],
-      [{ k: 'currency', label: '交易幣別', t: 'ro', w: 80 }, { k: 'rate', label: '匯率', t: 'ro', w: 120 }, roText('訂金比率', '. %', 80)],
+      [{ k: 'dept', label: '部門代號', w: 150 }, { k: 'customerPo', label: '客戶單號', w: 280 }, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
+      [F.employee('sales', '業務人員'), { k: 'priceTerm', label: '價格條件', w: 230 }, roText('傳送次數', '', 64)],
+      [{ k: '_plant', label: '出貨廠別', t: 'ro', w: 100, show: (r, db) => db.orders.find((o: R) => o.type === r.orderType && o.no === r.orderNo)?.plant ?? '' }, F.payTerm, roText('列印', '', 64)],
+      [{ k: 'currency', label: '交易幣別', req: true, pick: PK.currency, w: 70 }, F.rate, roText('訂金比率', '. %', 130)],
       [F.taxCode, F.taxType, F.taxRate],
     ] },
     ph('交易資料二'), ph('送貨資料'), ph('國外訂單一'), ph('國外訂單二'), ph('國外備註'), ph('嘜頭資料'),
@@ -166,8 +166,8 @@ const saleCfg: DocConfig = {
   header: [
     [F.docType('sale', '銷貨單別'), F.date, { k: 'saleDate', label: '銷貨日期', t: 'ro', w: 120 }, { k: '_g1', label: '產生分錄-收入', t: 'check', ro: true }],
     [F.docNo('銷貨單號'), F.customer, null, { k: '_g2', label: '產生分錄-成本', t: 'check', ro: true }],
-    [roText('流程代號', '', 70), { k: '_noc', label: '不控管信用額度', t: 'check', ro: true }, roText('拋轉狀態', 'N:未拋轉', 160)],
-    [null, { k: '_cash', label: '現銷', t: 'check', ro: true }, roText('EBO拋轉狀態', '不需拋轉', 160)],
+    [X('流程代號', 80), { k: '_noc', label: '不控管信用額度', t: 'check', ro: true }, roText('拋轉狀態', 'N:未拋轉', 260), null],
+    [null, { k: '_cash', label: '現銷', t: 'check', ro: true }, roText('EBO拋轉狀態', '不需拋轉', 260), null],
   ],
   tabs: [
     { label: '交易資料', rows: [

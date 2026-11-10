@@ -22,6 +22,7 @@ export const PermLine = z.object({
   add: bool, query: bool, edit: bool, del: bool,
   confirm: bool, unconfirm: bool, void: bool, output: bool,
   cost: Visibility, price: Visibility,
+  more: z.record(z.string(), z.boolean()).default({}), // 資料管制/設計/群組/他組/附件權限：只存不檢查
 })
 export const PermSet = z.object({
   userId: str, group: str, dept: str, remark: str, superuser: bool,
@@ -37,6 +38,7 @@ export const Item = z.object({
   id: str, name: str, spec: str, unit: str,
   mainWarehouse: str, mainSupplier: str, leadDays: num,
   price: num, cost: num, remark: str,
+  acct: str.default(''), // 會計類別（舊資料沒有這欄）
 })
 export const Customer = z.object({
   id: str, short: str, name: str, enName: str,

@@ -2,7 +2,7 @@ import type { DB, Item, Supplier, Customer } from './schema'
 
 // 預設資料：依課堂截圖建立。截圖看不到的值（單價、主供應商、庫別名稱）是推測的。
 const item = (id: string, name: string, spec: string, unit: string, mainSupplier: string, price: number, cost: number): Item =>
-  ({ id, name, spec, unit, mainWarehouse: 'P003', mainSupplier, leadDays: 7, price, cost, remark: '' })
+  ({ id, name, spec, unit, mainWarehouse: 'P003', mainSupplier, leadDays: 7, price, cost, remark: '', acct: '1' })
 
 const sup = (id: string, short: string, tel = '', contact = '', taxId = '', name = short): Supplier =>
   ({ id, short, name, tel, contact, taxId, currency: 'NTD', payTerm: '' })

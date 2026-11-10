@@ -9,7 +9,9 @@ import { names, PK } from '../ui/Picker'
 type R = any
 
 export const pad4 = (n: number) => String(n ?? 0).padStart(4, '0')
-export const roText = (label: string, text: string, w = 140): FieldDef => ({ k: '_' + label, label, t: 'ro', show: () => text, w })
+export const roText = (label: string, text: string, w = 140, more?: FieldDef[]): FieldDef => ({ k: '_' + label, label, t: 'ro', show: () => text, w, with: more })
+/** 練習用不到、但畫面上有的欄位：可以輸入，不會檢查 */
+export const X = (label: string, w = 140, more: Partial<FieldDef> = {}): FieldDef => ({ k: '_' + label, label, w, ...more })
 export const PLACEHOLDER: Rows = [[{ k: '_ph', label: '', t: 'ro', show: () => '（練習版未使用此頁籤）', w: 320 }]]
 export const ph = (label: string) => ({ label, rows: PLACEHOLDER })
 
@@ -26,13 +28,13 @@ export const F = {
   plant: (label: string): FieldDef => ({ k: 'plant', label, req: true, pick: PK.plant, w: 90, name: (db, r) => names.plant(db, r.plant) }),
   employee: (k: string, label: string): FieldDef => ({ k, label, pick: PK.employee, w: 110, name: (db, r) => names.employee(db, r[k]) }),
   currency: (label = '幣別'): FieldDef => ({ k: 'currency', label, req: true, pick: PK.currency, w: 80, name: (db, r) => names.currency(db, r.currency) }),
-  rate: { k: 'rate', label: '匯率', t: 'num', w: 120 } as FieldDef,
+  rate: { k: 'rate', label: '匯率', t: 'num', w: 180 } as FieldDef,
   taxCode: { k: 'taxCode', label: '稅別碼', req: true, pick: PK.tax, w: 70, name: (db, r) => names.tax(db, r.taxCode) } as FieldDef,
-  taxType: { k: 'taxType', label: '課稅別', t: 'select', opts: TAX_TYPES, ro: true, w: 160 } as FieldDef,
-  taxRate: { k: 'taxRate', label: '營業稅率', t: 'ro', w: 90, show: (r: R) => `${r.taxRate ?? 0} %` } as FieldDef,
-  payTerm: { k: 'payTerm', label: '付款條件', w: 140 } as FieldDef,
+  taxType: { k: 'taxType', label: '課稅別', t: 'select', opts: TAX_TYPES, w: 160 } as FieldDef,
+  taxRate: { k: 'taxRate', label: '營業稅率', t: 'ro', w: 120, show: (r: R) => `${r.taxRate ?? 0} %` } as FieldDef,
+  payTerm: { k: 'payTerm', label: '付款條件', w: 140, pick: { icon: 'pick', title: '開窗查詢 - 付款條件', cols: [['付款條件', r => r.id]], rows: () => [{ id: '月結30天' }, { id: '月結60天' }, { id: '貨到付現' }], val: r => r.id } } as FieldDef,
   confirmer: { k: 'confirmer', label: '確認者', t: 'ro', w: 120 } as FieldDef,
-  sign: roText('簽核狀態', 'N:不執行電子簽核', 180),
+  sign: roText('簽核狀態', 'N:不執行電子簽核', 260),
   remark: { k: 'remark', label: '備註', w: 300 } as FieldDef,
   status: { k: 'status', label: '確認碼', t: 'ro', w: 110, show: (r: R) => STATUS_TEXT(r.status) } as FieldDef,
 }
