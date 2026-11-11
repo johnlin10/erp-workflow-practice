@@ -94,6 +94,23 @@ export type DocConfig = {
 }
 
 
+// 各作業工具列的差異（依課堂截圖）：full = 有確認、取消確認那一段；trail = 後面練習版沒有的按鈕
+const BAR: Record<string, { full: boolean; trail: string[] }> = {
+  ADMI10: { full: false, trail: [] },
+  ADMI05: { full: true, trail: ['pages', 'clip'] },
+  INVI02: { full: true, trail: ['pages', 'clip', 'grid'] },
+  COPI01: { full: false, trail: ['house', 'clip', 'grid'] },
+  PURI01: { full: false, trail: ['house', 'clip', 'grid'] },
+  COPI05: { full: true, trail: ['pages', 'clip'] },
+  COPI06: { full: true, trail: ['pages', 'clip', 'stack'] },
+  COPI07: { full: true, trail: ['stack', 'cal'] },
+  COPI08: { full: true, trail: ['pages', 'clip', 'grid'] },
+  PURI05: { full: true, trail: ['find', 'pages'] },
+  PURI06: { full: true, trail: ['find', 'clip'] },
+  PURI07: { full: true, trail: ['pages', 'clip'] },
+  PURI09: { full: true, trail: ['pages', 'clip', 'grid'] },
+}
+
 export function DocProgram({ cfg, close, arg }: { cfg: DocConfig; close: () => void; arg?: string }) {
   const db = useDb()
   const { user, open } = useSession()
@@ -187,33 +204,44 @@ export function DocProgram({ cfg, close, arg }: { cfg: DocConfig; close: () => v
   }
 
   const canEditCur = !!cur && !!cfg.save && (!cfg.status || status === 'N')
-  type Tool = { icon: string; label: string; on: boolean; run: () => void; sep?: boolean }
+  // 工具列：照課堂截圖的順序。練習版沒有的按鈕畫成灰色佔位（hide 的只放在選單裡）
+  type Tool = { icon: string; label: string; on: boolean; run: () => void; sep?: boolean; drop?: boolean; hide?: boolean }
+  const NA = '練習版未提供此功能'
+  // live：原系統在瀏覽時是彩色（可按）的按鈕，按了提示練習版未提供
+  const deco = (icon: string, drop = false, live = false): Tool => ({ icon, label: NA, on: live && !editing, run: () => msgbox(NA + '。'), drop })
+  const bar = BAR[cfg.code] ?? { full: !!cfg.confirm, trail: [] }
+  const extra = (cfg.extraTools ?? []).map(t => ({ icon: t.icon, label: t.label, on: !editing && !!cur && t.on(cur), run: () => run(() => { let m = ''; commit(d => { m = t.run(d, cur) }); msgbox(m) }) }))
+  const voidTool: Tool | null = cfg.voidIt ? { icon: 'stamp', label: '作廢', on: !editing && status === 'N' && allow('void'), run: doVoid } : null
   const tools: Tool[] = [
     { icon: 'new', label: '新增', on: !editing && !cfg.noAdd && !!(cfg.blank || cfg.beforeAdd) && allow('add'), run: doAdd },
     { icon: 'query', label: '查詢', on: !editing && allow('query'), run: () => setQueryOpen(true) },
     { icon: 'edit', label: '修改', on: !editing && canEditCur && allow('edit'), run: doEdit },
     { icon: 'del', label: '刪除', on: !editing && !!cur && !!cfg.remove && !cfg.noDelete && (!cfg.status || status === 'N') && allow('del'), run: doDelete },
-    { icon: 'print', label: '列印', on: !editing && !!cur && allow('output'), run: () => msgbox('練習版未提供列印功能。') },
+    { icon: 'print', label: '列印', on: !editing && !!cur && allow('output'), run: () => msgbox('練習版未提供列印功能。'), drop: true },
     { icon: 'first', label: '第一筆', on: !editing && keys.length > 0, run: () => setIdx(0), sep: true },
     { icon: 'prev', label: '上一筆', on: !editing && idx > 0, run: () => setIdx(idx - 1) },
     { icon: 'next', label: '下一筆', on: !editing && idx < keys.length - 1, run: () => setIdx(idx + 1) },
     { icon: 'last', label: '最後一筆', on: !editing && keys.length > 0, run: () => setIdx(keys.length - 1) },
-    { icon: 'view', label: '檢視', on: !editing, run: () => setTab(t => (t === 'detail' ? 'browse' : 'detail')) },
+    { icon: 'cross', label: '串查作業', on: !!cfg.crossQuery && !editing, run: () => setMenu(menu === 'cross' ? null : 'cross'), drop: true },
+    { icon: 'view', label: '檢視', on: !editing, run: () => setTab(t => (t === 'detail' ? 'browse' : 'detail')), hide: true },
     { icon: 'ok', label: '確定(存檔)', on: editing, run: doSave, sep: true },
     { icon: 'cancel', label: '放棄', on: editing, run: doCancel },
-    ...(cfg.confirm ? [
-      { icon: 'confirm', label: '確認', on: !editing && status === 'N' && allow('confirm'), run: doConfirm, sep: true },
-      { icon: 'unconfirm', label: '取消確認', on: !editing && status === 'Y' && !!cfg.unconfirm && allow('unconfirm'), run: doUnconfirm },
+    deco('frame', true), deco('monitor', true, true), deco('sign', true, true),
+    ...(bar.full ? [
+      { icon: 'confirm', label: '確認', on: !!cfg.confirm && !editing && status === 'N' && allow('confirm'), run: doConfirm },
+      { icon: 'unconfirm', label: '取消確認', on: !!cfg.unconfirm && !editing && status === 'Y' && allow('unconfirm'), run: doUnconfirm },
+      // 這一格在報價單是「客戶確認」，其他單據放作廢
+      extra[0] ?? voidTool ?? deco('stamp'),
+      deco('transfer', true, true),
+      cfg.copyFrom ? { icon: 'copyFrom', label: '複製前置單別', on: mode === 'add', run: () => setCopyOpen(true) } : deco('copyFrom'),
     ] : []),
-    ...(cfg.extraTools ?? []).map(t => ({ icon: t.icon, label: t.label, on: !editing && !!cur && t.on(cur), run: () => run(() => { let m = ''; commit(d => { m = t.run(d, cur) }); msgbox(m) }) })),
-    ...(cfg.crossQuery ? [{ icon: 'cross', label: '串查作業', on: !editing && !!cur, run: () => setMenu(menu === 'cross' ? null : 'cross'), sep: true }] : []),
-    ...(cfg.voidIt ? [{ icon: 'void', label: '作廢', on: !editing && status === 'N' && allow('void'), run: doVoid }] : []),
-    ...(cfg.copyFrom ? [{ icon: 'copyFrom', label: '複製前置單別', on: mode === 'add', run: () => setCopyOpen(true), sep: true }] : []),
-    ...(cfg.lines?.blank ? [{ icon: 'delLine', label: '刪除單身(選取列)', on: linesEditable && selLine >= 0 && selLine < lines.length, run: deleteLine }] : []),
+    ...(extra[0] && voidTool ? [{ ...voidTool, hide: true }] : []),
+    ...bar.trail.map(n => deco(n)),
+    ...(cfg.lines?.blank ? [{ icon: 'delLine', label: '刪除單身(選取列)', on: linesEditable && selLine >= 0 && selLine < lines.length, run: deleteLine, sep: true }] : []),
   ]
   const menus: Record<string, Tool[]> = {
     '資料(D)': tools.filter(t => ['新增', '查詢', '修改', '刪除', '確定(存檔)', '放棄', '第一筆', '上一筆', '下一筆', '最後一筆'].includes(t.label)),
-    '功能(F)': tools.filter(t => ['確認', '取消確認', '作廢', '複製前置單別', '刪除單身(選取列)', '列印', '檢視'].includes(t.label)),
+    '功能(F)': tools.filter(t => ['確認', '取消確認', '客戶確認', '作廢', '串查作業', '複製前置單別', '刪除單身(選取列)', '列印', '檢視'].includes(t.label) && t.icon !== 'cross'),
   }
 
   // ---------- 欄位 ----------
@@ -344,14 +372,16 @@ export function DocProgram({ cfg, close, arg }: { cfg: DocConfig; close: () => v
         <div className="menu"><button onClick={closeWin}>離開(X)</button></div>
       </div>
       <div className="toolbar">
-        {tools.map(t => (
-          <Fragment key={t.label}>
+        {tools.filter(t => !t.hide).map((t, i) => (
+          <Fragment key={t.label + i}>
             {t.sep && <span className="tsep" />}
             <span className="tbtn-wrap">
-              <button className="tbtn" disabled={!t.on} title={t.label} aria-label={t.label} onClick={e => { e.stopPropagation(); t.run() }}><Icon n={t.icon} size={24} /></button>
-              {t.icon === 'cross' && menu === 'cross' && cur && (
+              <button className={`tbtn ${t.drop ? 'drop' : ''}`} disabled={!t.on} title={t.label} aria-label={t.label} onClick={e => { e.stopPropagation(); t.run() }}>
+                <Icon n={t.icon} size={24} />{t.drop && <span className="tdrop" />}
+              </button>
+              {t.icon === 'cross' && menu === 'cross' && (
                 <div className="menu-pop cross-pop">
-                  {cfg.crossQuery!(cur, db).map((c, i) => c === null ? <hr key={i} /> : (() => {
+                  {cfg.crossQuery!(cur ?? { lines: [] }, db).map((c, i) => c === null ? <hr key={i} /> : (() => {
                     const ok = !!c.code && PROGRAMS.some(p => p.code === c.code)
                     return <button key={c.label} disabled={!ok} title={ok ? '' : '練習版未提供此作業'} onClick={() => { setMenu(null); open(c.code!, c.arg) }}>{c.label}</button>
                   })())}

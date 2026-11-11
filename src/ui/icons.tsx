@@ -1,4 +1,4 @@
-// 自己繪製的簡易圖示（不使用原軟體的圖檔）。形狀和顏色只是表達按鈕的意思。
+// 自己繪製的簡易圖示（不使用原軟體或他人的圖檔）。工具列圖示的形狀和顏色參考課堂截圖重新繪製。
 import type { ReactNode } from 'react'
 
 const paper = <path d="M6 3h8l4 4v14H6z" fill="#fff" stroke="#333" strokeWidth="1.2" />
@@ -10,21 +10,32 @@ const ICONS: Record<string, ReactNode> = {
   edit: <>{paper}{fold}<path d="M9 18l1-3 7-7 2 2-7 7z" fill="#e8b84a" stroke="#634" strokeWidth="0.8" /></>,
   del: <><path d="M7 7h10l-1 14H8z" fill="#bbb" stroke="#444" /><path d="M6 6h12M10 4h4" stroke="#444" strokeWidth="1.5" /><path d="M10 10v8M14 10v8" stroke="#666" /></>,
   print: <><rect x="7" y="3" width="10" height="6" fill="#fff" stroke="#444" /><rect x="4" y="9" width="16" height="8" rx="1" fill="#999" stroke="#444" /><rect x="7" y="14" width="10" height="6" fill="#fff" stroke="#444" /></>,
-  first: <path d="M6 5v14M18 5l-9 7 9 7z" fill="#2a3d8f" stroke="#2a3d8f" strokeWidth="1.5" />,
-  prev: <path d="M16 5l-9 7 9 7z" fill="#2a3d8f" />,
-  next: <path d="M8 5l9 7-9 7z" fill="#2a3d8f" />,
-  last: <path d="M18 5v14M6 5l9 7-9 7z" fill="#2a3d8f" stroke="#2a3d8f" strokeWidth="1.5" />,
+  first: <path d="M12 5L4 12l8 7zM20 5l-8 7 8 7z" fill="#2c3550" />,
+  prev: <path d="M16 5l-8 7 8 7z" fill="#2c3550" />,
+  next: <path d="M8 5l8 7-8 7z" fill="#2c3550" />,
+  last: <path d="M4 5l8 7-8 7zM12 5l8 7-8 7z" fill="#2c3550" />,
   view: <><rect x="4" y="4" width="16" height="16" fill="#fff" stroke="#444" /><rect x="6" y="6" width="12" height="4" fill="#c33" /><path d="M6 13h12M6 16h12" stroke="#468" /></>,
-  ok: <path d="M4 13l5 5L20 6" fill="none" stroke="#1a9a1a" strokeWidth="3.4" strokeLinecap="round" />,
-  cancel: <path d="M5 5l14 14M19 5L5 19" stroke="#d01818" strokeWidth="3.6" strokeLinecap="round" />,
-  confirm: <><path d="M12 3l8 8-8 8-8-8z" fill="#f2c94c" stroke="#8a6d00" /><path d="M8 11l3 3 5-6" fill="none" stroke="#1a7a1a" strokeWidth="2" /></>,
-  cross: <><rect x="3" y="4" width="9" height="7" fill="#fff" stroke="#2a5ca8" /><rect x="12" y="13" width="9" height="7" fill="#fff" stroke="#2a5ca8" /><path d="M8 11v5h4M16 13V8h-4" fill="none" stroke="#c47a00" strokeWidth="1.6" /></>,
-  custConfirm: <><circle cx="9" cy="8" r="4" fill="#8fb4e8" stroke="#2a5ca8" /><path d="M2 20c0-4 3-7 7-7s7 3 7 7z" fill="#8fb4e8" stroke="#2a5ca8" /><path d="M14 13l3 3 5-6" fill="none" stroke="#1a7a1a" strokeWidth="2.5" /></>,
-  unconfirm: <><path d="M12 3l8 8-8 8-8-8z" fill="#ddd" stroke="#777" /><path d="M9 8l6 6M15 8l-6 6" stroke="#b22" strokeWidth="2" /></>,
+  ok: <path d="M3.5 12.5l5.5 5.5L20.5 5" fill="none" stroke="#1d8f1d" strokeWidth="3.6" strokeLinejoin="round" />,
+  cancel: <path d="M5 5l14 14M19 5L5 19" stroke="#c40000" strokeWidth="3.8" />,
+  confirm: <><g transform="translate(3 3) scale(.85)"><path d="M5 6l11-3 4 14-11 3z" fill="#f4d23c" stroke="#5a4a00" strokeWidth="1" /><path d="M7.2 7.5l6.5-1.8 1.3 4.6-6.5 1.8z" fill="#fff" stroke="#5a4a00" strokeWidth=".6" /><path d="M10 15.5l5-1.4 1 3.4-5 1.4z" fill="#3a3a3a" /></g><path d="M2.5 2.5l6 6M8.5 8.5V4.5M8.5 8.5h-4" fill="none" stroke="#d01010" strokeWidth="2" /></>,
+  cross: <><rect x="2" y="2" width="20" height="20" fill="#d8d8d8" stroke="#777" /><rect x="5" y="4" width="11" height="12" fill="#fff" stroke="#2a4f9a" /><rect x="5" y="4" width="11" height="3" fill="#2a4f9a" /><rect x="9" y="9" width="10" height="11" fill="#fff" stroke="#b02020" /><path d="M9 9h10v3H9z" fill="#c62828" /><path d="M11 14h6M11 16.5h6" stroke="#2a8a3a" strokeWidth="1.2" /></>,
+  custConfirm: <><path d="M6 2h9l4 4v14H6z" fill="#fff" stroke="#444" /><path d="M8 11h3l-1 10-1.5-2-1.5 2z" fill="#d03030" /><path d="M11 11h3l-.5 9-1.2-1.6-1.3 1.6z" fill="#f2c200" /><path d="M14 11h3l-1 8-1.2-1.4-1.3 1.4z" fill="#2a6ad0" /><circle cx="12" cy="9" r="3" fill="#2a9a3a" stroke="#155a20" /></>,
+  unconfirm: <><g transform="translate(3 3) scale(.85)"><path d="M5 6l11-3 4 14-11 3z" fill="#f4d23c" stroke="#5a4a00" strokeWidth="1" /><path d="M7.2 7.5l6.5-1.8 1.3 4.6-6.5 1.8z" fill="#fff" stroke="#5a4a00" strokeWidth=".6" /><path d="M10 15.5l5-1.4 1 3.4-5 1.4z" fill="#3a3a3a" /></g><path d="M10 3.5A4.5 4.5 0 0 0 3.5 9" fill="none" stroke="#d01010" strokeWidth="1.8" /><path d="M2 6.5l1.6 3 3-1.6" fill="none" stroke="#d01010" strokeWidth="1.6" /></>,
   void: <><circle cx="12" cy="12" r="8" fill="#fff" stroke="#b22" strokeWidth="2" /><path d="M6.5 17.5l11-11" stroke="#b22" strokeWidth="2" /></>,
-  copyFrom: <><rect x="4" y="3" width="10" height="13" fill="#fff" stroke="#444" /><rect x="10" y="8" width="10" height="13" fill="#e8f0ff" stroke="#246" /><path d="M7 12h6l-2-2M13 12l-2 2" stroke="#c22" strokeWidth="1.4" fill="none" /></>,
+  copyFrom: <><path d="M2 7h7l2 2h10v11H2z" fill="#9a9440" stroke="#4a4610" /><path d="M2 11h19v9H2z" fill="#b8b25a" stroke="#4a4610" /><path d="M9 4h9v6" fill="none" stroke="#1a4fa8" strokeWidth="2" /><path d="M15 9l3 3 3-3" fill="#1a4fa8" /></>,
   delLine: <><rect x="3" y="6" width="18" height="12" fill="#ffffe0" stroke="#444" /><path d="M3 10h18M3 14h18" stroke="#999" /><path d="M14 13l6 6M20 13l-6 6" stroke="#d01818" strokeWidth="2" /></>,
   flow: <><rect x="3" y="4" width="8" height="5" fill="#9cf" stroke="#246" /><rect x="13" y="15" width="8" height="5" fill="#9cf" stroke="#246" /><path d="M7 9v8h6" fill="none" stroke="#246" strokeWidth="1.4" /></>,
+  frame: <><rect x="3" y="3" width="18" height="18" fill="#cfcfcf" stroke="#6a6a6a" /><rect x="6" y="6" width="12" height="12" fill="#fff" stroke="#888" /><path d="M8 15l3-4 2 2 2-3 2 5z" fill="#7a9a6a" /><circle cx="9.5" cy="9" r="1.3" fill="#e0a020" /></>,
+  monitor: <><rect x="1.5" y="4" width="21" height="13" fill="#3a78c8" stroke="#1a3a70" /><rect x="3" y="5.5" width="18" height="5" fill="#a9d4ff" /><path d="M4 8h3M8 8h3M12 8h3M16 8h3" stroke="#fff" strokeWidth="1.2" /><path d="M9 17l-1 3h8l-1-3z" fill="#555" /></>,
+  sign: <><circle cx="9" cy="7" r="3" fill="#5a8ad8" stroke="#1a3a70" /><path d="M3.5 17c0-4 2.5-6 5.5-6s5.5 2 5.5 6z" fill="#5a8ad8" stroke="#1a3a70" /><circle cx="16" cy="7" r="3" fill="#3aa89a" stroke="#155a50" /><path d="M11.5 17c0-4 2-6 4.5-6s5.5 2 5.5 6z" fill="#3aa89a" stroke="#155a50" /><circle cx="7" cy="18.5" r="4" fill="#d81b1b" /><text x="7" y="21.2" fontSize="7" textAnchor="middle" fill="#fff" fontWeight="bold">S</text></>,
+  transfer: <><path d="M2 19l6-7 4 4 6-8" fill="none" stroke="#6a1a8a" strokeWidth="3.4" transform="translate(1 1)" /><path d="M2 19l6-7 4 4 6-8" fill="none" stroke="#f020c0" strokeWidth="3.4" /><path d="M14 6h6v6z" fill="#f020c0" /></>,
+  pages: <><rect x="3" y="2" width="12" height="15" fill="#fff8c0" stroke="#555" /><rect x="9" y="7" width="12" height="15" fill="#fff" stroke="#333" /><path d="M11 11h8M11 14h8M11 17h6" stroke="#333" /></>,
+  clip: <><rect x="4" y="4" width="16" height="18" rx="1" fill="#a87830" stroke="#4a3010" /><rect x="7" y="7" width="10" height="13" fill="#fff" stroke="#666" /><rect x="8.5" y="2" width="7" height="4" rx="1" fill="#ddd" stroke="#333" /><path d="M9 11h6M9 14h6M9 17h4" stroke="#888" /></>,
+  grid: <><rect x="2" y="4" width="20" height="16" fill="#fff" stroke="#1a3a80" /><rect x="2" y="4" width="20" height="4" fill="#2a5ac0" /><path d="M2 12h20M2 16h20M8 8v12M15 8v12" stroke="#1a3a80" strokeWidth=".8" /><path d="M9.5 14l2 2 4-5" fill="none" stroke="#d01010" strokeWidth="1.6" /></>,
+  house: <><path d="M3 12l9-8 9 8" fill="none" stroke="#7a3a10" strokeWidth="2" /><path d="M5 11v10h14V11l-7-6z" fill="#f2e6c8" stroke="#555" /><rect x="10" y="14" width="4" height="7" fill="#a06030" /><rect x="15" y="4" width="2.5" height="5" fill="#a03020" /></>,
+  stack: <><rect x="9" y="2" width="12" height="9" fill="#f4d23c" stroke="#5a4a00" /><rect x="6" y="7" width="12" height="9" fill="#f8e070" stroke="#5a4a00" /><rect x="3" y="12" width="12" height="9" fill="#fff2a8" stroke="#5a4a00" /></>,
+  find: <><circle cx="10" cy="10" r="6" fill="#fff6a0" stroke="#1a2a6a" strokeWidth="2" /><path d="M14.5 14.5l6 6" stroke="#1a2a6a" strokeWidth="3" /></>,
+  stamp: <><path d="M6 2h9l4 4v14H6z" fill="#fff" stroke="#444" /><path d="M8 11h3l-1 10-1.5-2-1.5 2z" fill="#d03030" /><path d="M11 11h3l-.5 9-1.2-1.6-1.3 1.6z" fill="#f2c200" /><path d="M14 11h3l-1 8-1.2-1.4-1.3 1.4z" fill="#2a6ad0" /><circle cx="12" cy="9" r="3" fill="#2a9a3a" stroke="#155a20" /></>,
   // 欄位旁的小圖示
   pick: <><rect x="5" y="9" width="10" height="9" fill="#fff" stroke="#555" /><rect x="9" y="5" width="10" height="9" fill="#fff" stroke="#555" /></>,
   person: <><circle cx="12" cy="8" r="4" fill="#f5c89a" stroke="#333" /><path d="M4 21c0-5 4-7 8-7s8 2 8 7z" fill="#2b4fb3" stroke="#123" /></>,
@@ -61,7 +72,7 @@ const ICONS: Record<string, ReactNode> = {
 
 export function Icon({ n, size = 22 }: { n: string; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block', flex: 'none' }}>
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block', flex: 'none', overflow: 'visible' }}>
       {ICONS[n] ?? ICONS.options}
     </svg>
   )

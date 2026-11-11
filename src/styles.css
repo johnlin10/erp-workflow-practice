@@ -156,7 +156,9 @@ select.fld { padding: 0 2px; }
 .toolbar { display: flex; align-items: center; gap: 1px; padding: 2px 4px; border-bottom: 1px solid #ccc; background: var(--face); }
 .tbtn { width: 32px; height: 32px; border: 1px solid transparent; background: none; display: grid; place-items: center; padding: 0; }
 .tbtn:hover:not(:disabled) { border-color: #e3c06b; background: #fdf1c9; }
-.tbtn:disabled { opacity: .3; filter: grayscale(1); }
+.tbtn:disabled { opacity: .45; filter: grayscale(1); }
+.tbtn.drop { width: 42px; grid-template-columns: 24px 10px; gap: 2px; }
+.tdrop { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #000; }
 .tsep { width: 1px; height: 26px; background: #aaa; margin: 0 4px; }
 .query-tools { gap: 6px; padding: 4px 8px; }
 
