@@ -93,7 +93,7 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
     return (
       <div key={k}>
         <div className={`tree-item ${n.sys && sys === n.sys ? 'sel' : ''} ${hasProg(n) ? '' : 'na'}`} title={hasProg(n) ? undefined : '此資料夾沒有練習版提供的作業'} onClick={() => { toggle(k); if (n.sys) setSys(n.sys) }}>
-          <span className="twisty">{n.children.length || n.sys !== undefined ? (isOpen ? '⌄' : '›') : ''}</span>
+          <span className={`twisty ${isOpen ? 'open' : ''}`}>{(n.children.length > 0 || n.sys !== undefined) && <i />}</span>
           <Icon n={path ? (isOpen ? 'folderOpen' : 'folder') : 'tree'} size={16} />{n.name}
         </div>
         {isOpen && n.children.length > 0 && <div className="tree-indent">{n.children.map(c => node(c, k))}</div>}
