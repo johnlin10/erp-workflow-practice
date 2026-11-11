@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { DB } from '../db/schema'
-import { ITEM_CATS } from '../db/seed'
+import { DEPTS, ITEM_CATS, PAY_TERMS, TRADE_TERMS, UNITS } from '../db/seed'
 import { stockOf } from '../domain/stock'
 import { Icon } from './icons'
 
@@ -80,6 +80,10 @@ export const PK = {
   plant: { icon: 'plant', cols: [['廠別代號', r => r.id], ['廠別名稱', r => r.name]], rows: db => db.plants, val: r => r.id } as PickDef,
   warehouse: { icon: 'plant', cols: [['庫別代號', r => r.id], ['庫別名稱', r => r.name], ['廠別代號', r => r.plant], ['庫存性質', r => WH_KIND[r.kind] ?? '']], rows: db => db.warehouses, val: r => r.id } as PickDef,
   itemCat: { icon: 'pick', cols: [['品號類別代號', r => r.id], ['品號類別名稱', r => r.name]], rows: () => ITEM_CATS.map(([id, name]) => ({ id, name })), val: r => r.id } as PickDef,
+  payTerm: { icon: 'pick', cols: [['付款條件代號', r => r.id], ['付款條件名稱', r => r.name]], rows: () => PAY_TERMS.map(([id, name]) => ({ id, name })), val: r => r.id } as PickDef,
+  tradeTerm: { icon: 'pick', cols: [['條件代號', r => r.id], ['條件說明', r => r.name]], rows: () => TRADE_TERMS.map(([id, name]) => ({ id, name })), val: r => r.id } as PickDef,
+  dept: { icon: 'tree', cols: [['部門代號', r => r.id], ['部門名稱', r => r.name]], rows: () => DEPTS.map(([id, name]) => ({ id, name })), val: r => r.id } as PickDef,
+  unit: { icon: 'pick', cols: [['單位代號', r => r.id], ['單位名稱', r => r.name], ['英文名稱', r => r.en]], rows: () => UNITS.map(([id, name, en]) => ({ id, name, en })), val: r => r.id } as PickDef,
   currency: { icon: 'money', cols: [['幣別', r => r.id], ['幣別名稱', r => r.name], ['匯率', r => r.rate]], rows: db => db.currencies, val: r => r.id } as PickDef,
   /** 稅別碼：銷售系統用 S 開頭、採購系統用 P 開頭 */
   tax: (k: string) => ({ icon: 'pick', cols: [['稅別碼', r => r.id], ['名稱', r => r.name], ['課稅別', r => r.taxType], ['營業稅率', r => r.rate]], rows: db => db.taxCodes.filter(t => t.id.startsWith(k)), val: r => r.id }) as PickDef,
@@ -95,6 +99,9 @@ export const names = {
   plant: (db: DB, id: string) => name(db.plants, id, x => x.name),
   warehouse: (db: DB, id: string) => name(db.warehouses, id, x => x.name),
   itemCat: (id: string) => ITEM_CATS.find(([c]) => c === id)?.[1] ?? '',
+  payTerm: (id: string) => PAY_TERMS.find(([c]) => c === id)?.[1] ?? '',
+  tradeTerm: (id: string) => TRADE_TERMS.find(([c]) => c === id)?.[1] ?? '',
+  dept: (id: string) => DEPTS.find(([c]) => c === id)?.[1] ?? '',
   currency: (db: DB, id: string) => name(db.currencies, id, x => x.name),
   tax: (db: DB, id: string) => name(db.taxCodes, id, x => x.name),
   docType: (db: DB, id: string) => name(db.docTypes, id, x => x.name),

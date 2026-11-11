@@ -96,7 +96,7 @@ const orderCfg: DocConfig = {
   ],
   tabs: [
     { label: '交易資料一', rows: [
-      [{ k: 'dept', label: '部門代號', w: 200, pick: { icon: 'tree', cols: [['部門代號', r => r.id]], rows: () => [], val: r => r.id } }, F.taxCode, null],
+      [{ k: 'dept', label: '部門代號', w: 200, pick: PK.dept, name: (_db, r) => names.dept(r.dept) }, F.taxCode, null],
       [F.employee('sales', '業務人員'), F.taxType, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
       [F.plant('出貨廠別'), F.taxRate, roText('傳送次數', '', 170)],
       [F.currency('交易幣別'), { k: '_dep', label: '訂金分批', t: 'check', ro: true }, roText('列印', '', 80)],
@@ -161,7 +161,7 @@ const changeCfg: DocConfig = {
   ],
   tabs: [
     { label: '交易資料一', rows: [
-      [{ k: 'dept', label: '部門代號', w: 150 }, { k: 'customerPo', label: '客戶單號', w: 280 }, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
+      [{ k: 'dept', label: '部門代號', w: 60, pick: PK.dept, name: (_db, r) => names.dept(r.dept) }, { k: 'customerPo', label: '客戶單號', w: 280 }, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
       [F.employee('sales', '業務人員'), { k: 'priceTerm', label: '價格條件', w: 230 }, roText('傳送次數', '', 64)],
       [{ k: '_plant', label: '出貨廠別', t: 'ro', w: 100, show: (r, db) => db.orders.find((o: R) => o.type === r.orderType && o.no === r.orderNo)?.plant ?? '' }, F.payTerm, roText('列印', '', 64)],
       [{ k: 'currency', label: '交易幣別', req: true, pick: PK.currency, w: 70 }, F.rate, roText('訂金比率', '. %', 130)],
@@ -204,7 +204,7 @@ const saleCfg: DocConfig = {
   ],
   tabs: [
     { label: '交易資料', rows: [
-      [{ k: 'dept', label: '部門代號', w: 120 }, F.currency('幣別'), F.sign],
+      [{ k: 'dept', label: '部門代號', w: 60, pick: PK.dept, name: (_db, r) => names.dept(r.dept) }, F.currency('幣別'), F.sign],
       [F.employee('sales', '業務人員'), F.rate, F.confirmer],
       [F.plant('出貨廠別'), roText('保稅碼', '0.依品號預設', 200), null],
       [F.payTerm, F.remark, null],

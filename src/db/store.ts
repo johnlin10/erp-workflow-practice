@@ -26,6 +26,12 @@ function load(): DB {
       // 員工改用課堂的 16 筆；舊資料的業務人員代號已不存在時改成 1001
       r.data.employees = base.employees
       for (const c of r.data.customers) if (!base.employees.some(e => e.id === c.sales)) c.sales = '1001'
+      // 單別、幣別是固定的參考資料，直接換成最新的；舊付款條件存的是文字，改成代號
+      r.data.docTypes = base.docTypes
+      r.data.currencies = base.currencies
+      const oldPay: Record<string, string> = { 月結30天: '002', 月結60天: '003', 貨到付現: '' }
+      for (const k of ['customers', 'suppliers', 'quotes', 'orders', 'orderChanges', 'purchases', 'receipts', 'sales'] as const)
+        for (const x of r.data[k] as { payTerm?: string }[]) if (x.payTerm && x.payTerm in oldPay) x.payTerm = oldPay[x.payTerm]
       r.data.taxCodes = base.taxCodes // 稅別碼是固定的參考資料，練習版不能修改，直接換成最新的
       return r.data
     }

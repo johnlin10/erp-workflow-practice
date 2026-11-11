@@ -33,7 +33,7 @@ export const F = {
   taxCodeP: { k: 'taxCode', label: '稅別碼', req: true, pick: PK.tax('P'), w: 70, name: (db, r) => names.tax(db, r.taxCode) } as FieldDef,
   taxType: { k: 'taxType', label: '課稅別', t: 'select', opts: TAX_TYPES, w: 160 } as FieldDef,
   taxRate: { k: 'taxRate', label: '營業稅率', t: 'ro', w: 120, show: (r: R) => `${r.taxRate ?? 0} %` } as FieldDef,
-  payTerm: { k: 'payTerm', label: '付款條件', w: 140, pick: { icon: 'pick', title: '開窗查詢 - 付款條件', cols: [['付款條件', r => r.id]], rows: () => [{ id: '月結30天' }, { id: '月結60天' }, { id: '貨到付現' }], val: r => r.id } } as FieldDef,
+  payTerm: { k: 'payTerm', label: '付款條件', w: 60, pick: PK.payTerm, name: (_db, r) => names.payTerm(r.payTerm) } as FieldDef,
   confirmer: { k: 'confirmer', label: '確認者', t: 'ro', w: 120 } as FieldDef,
   sign: roText('簽核狀態', 'N:不執行電子簽核', 260),
   remark: { k: 'remark', label: '備註', w: 300 } as FieldDef,

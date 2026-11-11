@@ -14,7 +14,7 @@ const reqCfg: DocConfig = {
   ...docBase('requisition'),
   blank: db => blankRequisition(db, today()),
   header: [
-    [F.docType('requisition', '請購單別'), { k: 'dept', label: '請購部門', w: 190, pick: { icon: 'tree', cols: [['部門代號', r => r.id]], rows: () => [], val: r => r.id } }, null],
+    [F.docType('requisition', '請購單別'), { k: 'dept', label: '請購部門', w: 190, pick: PK.dept, name: (_db, r) => names.dept(r.dept) }, null],
     [{ ...F.docNo('請購單號'), w: 210, with: [roText('版次', '', 80)] }, { k: 'source', label: '來源別', t: 'select', ro: true, w: 440, opts: [['手動輸入', '1.手動輸入'], ['訂單', '2.訂單']] }, roText('列印', '0', 64)],
     [{ ...F.date, w: 210 }, roText('來源單號', '', 540), null],
     [F.plant('廠別'), { k: 'reqDate', label: '請購日期', t: 'ro', w: 210 }, roText('傳送次數', '', 64)],
@@ -67,7 +67,7 @@ const reqMaintCfg: DocConfig = {
     [{ k: 'item', label: '品號', t: 'ro', w: 460 }, { k: 'warehouse', label: '交貨庫別', pick: PK.warehouse, w: 200 }, { k: '_multi', label: '單身多稅率', t: 'check', ro: true }],
     [{ k: 'name', label: '品名', t: 'ro', w: 460 }, { k: 'poQty', label: '採購數量', t: 'num', w: 200 }, X('採購包裝數量', 170, { t: 'num' })],
     [{ k: 'spec', label: '規格', t: 'ro', w: 460 }, { k: '_poUnit', label: '採購單位', t: 'ro', w: 94, show: r => r.unit }, roText('採購包裝單位', '', 80, [roText('小單位', '', 80)])],
-    [{ k: 'date', label: '單據日期', t: 'ro', w: 216 }, X('交易條件', 94, { pick: { icon: 'pick', cols: [['交易條件', r => r.id]], rows: () => [{ id: '1' }], val: r => r.id } }), null],
+    [{ k: 'date', label: '單據日期', t: 'ro', w: 216 }, X('交易條件', 94, { pick: PK.tradeTerm, name: (_db, r) => names.tradeTerm(r['_交易條件']) }), null],
     [{ k: 'reqDate', label: '請購日期', t: 'ro', w: 216 }, X('稅別碼', 94, { req: true, pick: PK.tax('P') }), null],
     [{ k: 'qty', label: '請購數量', t: 'ro', w: 172 }, sel('_taxType', '課稅別', 294, TAX_TYPES), roText('營業稅率', '. %', 228)],
     [{ k: 'unit', label: '請購單位', t: 'ro', w: 126, with: [roText('請購包裝數量', '0', 160)] }, X('採購幣別', 94, { pick: PK.currency }), { k: '_bill', label: '計價數量', t: 'ro', w: 190, show: r => r.poQty }],

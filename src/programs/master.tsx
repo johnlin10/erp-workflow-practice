@@ -167,7 +167,7 @@ const itemCfg: DocConfig = {
   // 新增時品號自動帶下一個流水號（9 開頭 6 碼，從 900001 起），仍可自行修改；做法參考同學的專案
   blank: db => ({ id: nextItemNo(db), name: '', spec: '', unit: '', mainWarehouse: '', mainSupplier: '', leadDays: 0, price: 0, cost: 0, remark: '', acct: '01', lastCost: 0, retail: 0, floorPrice: 0, ext: {} }),
   header: [
-    [{ k: 'id', label: '品號', pk: true, w: 210, pick: PK.item }, roText('版次', '', 46), { k: 'unit', label: '單位', req: true, w: 52 }, { k: '_stock', label: '庫存數量', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) : 0) }],
+    [{ k: 'id', label: '品號', pk: true, w: 210, pick: PK.item }, roText('版次', '', 46), { k: 'unit', label: '單位', req: true, w: 52, pick: PK.unit }, { k: '_stock', label: '庫存數量', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) : 0) }],
     [{ k: 'name', label: '品名', w: 236 }, null, roText('小單位', '', 52), { k: '_stockAmt', label: '庫存金額', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) * r.cost : 0) }],
     [{ k: 'spec', label: '規格', w: 236 }, null, { k: '_fixed', label: '定重', t: 'check', ro: true }, { k: '_unitCost', label: '單位成本', t: 'ro', w: 150, show: r => r.cost ?? 0, mask: 'cost' }],
     [roText('貨號', '', 170), roText('SIZE', '', 52), roText('包裝單位', '', 52), roText('包裝數量', '0', 150)],
@@ -245,7 +245,7 @@ const custCfg: DocConfig = {
       [X('TEL_NO(二)', 220), X('合約訂單是否歸屬總公司', 0, { t: 'check' })],
       [{ k: 'fax', label: 'FAX NO', w: 220 }, roText('分店數', '0', 110)],
       [{ k: 'email', label: 'E-Mail', w: 350 }, { k: 'currency', label: '交易幣別', req: true, pick: PK.currency, w: 85, name: (db, r) => names.currency(db, r.currency) }],
-      [{ k: 'taxId', label: '統一編號', w: 260 }, { k: 'dept', label: '部門別', w: 140 }],
+      [{ k: 'taxId', label: '統一編號', w: 260 }, { k: 'dept', label: '部門別', w: 60, pick: PK.dept, name: (_db, r) => names.dept(r.dept) }],
       [X('資本額', 220, { t: 'num', suffix: '萬' }), null],
       [X('年營業額', 220, { t: 'num', suffix: '萬' }), { k: 'sales', label: '業務人員', pick: PK.employee, w: 140, name: (db, r) => names.employee(db, r.sales) }],
       [X('員工人數', 128, { t: 'num', suffix: '人' }), X('收款業務員', 140, { pick: PK.employee })],

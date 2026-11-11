@@ -14,6 +14,16 @@ const cust = (id: string, short: string, name: string, creditLimit: number, more
 
 // 品號類別（INVI02 的「會計」欄）與庫別清單取自同學的專案 tailing-cloud/workflow-erp-conductor（MIT 授權），他依課堂截圖整理
 export const ITEM_CATS: [string, string][] = [['01', '原料'], ['02', '物料'], ['03', '半成品'], ['04', '成品'], ['05', '商品']]
+// 以下開窗清單取自同學的專案（tailing-cloud/workflow-erp-conductor），練習版不能修改
+export const PAY_TERMS: [string, string][] = [['001', '即期支票'], ['002', '月結30天'], ['003', '月結60天'], ['202', '次月20日收款']]
+export const TRADE_TERMS: [string, string][] = [['1', '一般交易'], ['2', '分期交易'], ['FOB', 'FOB 船上交貨條件'], ['CIF', 'CIF 包含運費與保險'], ['EXW', 'EXW 工廠交貨']]
+export const DEPTS: [string, string][] = [['1000', '業務部'], ['2000', '生產部'], ['3000', '管理部'], ['4000', '財務部']]
+export const UNITS: [string, string, string][] = [
+  ['PC', '件/個', 'PIECE'], ['PCS', '個', 'PIECES'], ['台', '台', 'UNIT'], ['組', '組', 'SET'], ['套', '套', 'SET'], ['包', '包', 'PACK'],
+  ['箱', '箱', 'BOX'], ['盒', '盒', 'BOX'], ['條', '條', 'STRIP'], ['張', '張', 'SHEET'], ['本', '本', 'BOOK'], ['支', '支', 'PIECE'],
+  ['捲', '捲', 'ROLL'], ['袋', '袋', 'BAG'], ['瓶', '瓶', 'BOTTLE'], ['罐', '罐', 'CAN'], ['KG', '公斤', 'KILOGRAM'], ['G', '公克', 'GRAM'],
+  ['M', '公尺(米)', 'METER'], ['CM', '公分', 'CENTIMETER'], ['MM', '公釐', 'MILLIMETER'], ['L', '公升', 'LITER'], ['ML', '毫升', 'MILLILITER'],
+]
 const wh = (id: string, name: string, plant: string, kind = '1') => ({ id, name, plant, kind })
 
 const TAX_TYPE_NAME: Record<string, string> = { 1: '應稅內含', 2: '應稅外加', 3: '零稅', 4: '免稅', 9: '不計稅' }
@@ -41,14 +51,15 @@ export function seed(): DB {
       wh('P009', '事務品倉一', 'TP01'), wh('Y001', '原料倉二', 'TY01'), wh('Y002', '半成品倉二', 'TY01'), wh('Y003', '成品倉二', 'TY01'),
       wh('Y004', '不良品倉二', 'TY01'), wh('Y005', '報廢倉二', 'TY01', '2'), wh('Y009', '事務品倉二', 'TY01'),
     ],
+    // 單別清單取自同學的專案；每種單據的第一個是預設單別。
+    // 同學的進貨單別用 A331/A332/C331，和採購單別重複，這裡改用 34 開頭
     docTypes: [
-      { id: 'C211', name: '配銷報價單', kind: 'quote' },
-      { id: 'A221', name: '國內訂單', kind: 'order' },
-      { id: 'C311', name: '配銷請購單', kind: 'requisition' },
-      { id: 'B311', name: '原料請購單', kind: 'requisition' },
-      { id: 'A331', name: '國內採購單', kind: 'purchase' },
-      { id: 'A341', name: '國內進貨單', kind: 'receipt' },
-      { id: 'A231', name: '銷貨單', kind: 'sale' },
+      { id: 'C211', name: '配銷報價內', kind: 'quote' }, { id: 'C212', name: '配銷報價外', kind: 'quote' }, { id: 'A211', name: '標準報價單', kind: 'quote' },
+      { id: 'A221', name: '國內訂單', kind: 'order' }, { id: 'A222', name: '國外訂單', kind: 'order' }, { id: 'B221', name: '國內訂單', kind: 'order' }, { id: 'C220', name: '訂單開帳單', kind: 'order' }, { id: 'C221', name: '配銷訂單內', kind: 'order' }, { id: 'C222', name: '配銷訂單外', kind: 'order' },
+      { id: 'C311', name: '配銷請購單', kind: 'requisition' }, { id: 'B311', name: '原料請購單', kind: 'requisition' }, { id: 'B312', name: '事務請購單', kind: 'requisition' },
+      { id: 'A331', name: '國內採購單', kind: 'purchase' }, { id: 'A332', name: '國外採購單', kind: 'purchase' }, { id: 'B331', name: '原料採購單', kind: 'purchase' }, { id: 'B332', name: '事務採購單', kind: 'purchase' }, { id: 'C330', name: '採購開帳單', kind: 'purchase' }, { id: 'C331', name: '配銷採購內', kind: 'purchase' }, { id: 'C332', name: '配銷採購外', kind: 'purchase' },
+      { id: 'A341', name: '進貨單', kind: 'receipt' }, { id: 'A342', name: '國外進貨單', kind: 'receipt' }, { id: 'C341', name: '配銷進貨單', kind: 'receipt' },
+      { id: 'A231', name: '銷貨單', kind: 'sale' }, { id: 'A232', name: '銷貨單(隨)', kind: 'sale' }, { id: 'A233', name: '月結銷貨單', kind: 'sale' }, { id: 'A234', name: '現銷單', kind: 'sale' }, { id: 'C231', name: '配銷銷貨單', kind: 'sale' },
     ],
     // 員工 16 筆（代號、姓名、部門代號），取自同學的專案（他依課堂截圖整理）
     employees: [
@@ -69,7 +80,10 @@ export function seed(): DB {
       { id: '402', name: '曾美玲', dept: '1000' },
       { id: '403', name: '蔡佳伶', dept: '1000' },
     ],
-    currencies: [{ id: 'NTD', name: '台幣', rate: 1 }],
+    currencies: [
+      { id: 'NTD', name: '新台幣', rate: 1 }, { id: 'USD', name: '美元', rate: 32.15 }, { id: 'JPY', name: '日圓', rate: 0.215 },
+      { id: 'EUR', name: '歐元', rate: 34.8 }, { id: 'RMB', name: '人民幣', rate: 4.45 },
+    ],
     // 稅別碼：銷售用 S、採購用 P，依發票聯式分組。清單取自同學的專案（見下方廠商資料的註解）
     taxCodes: (['S', 'P'] as const).flatMap(k => TAX_KINDS.map(([n, inv, type, rate]) =>
       ({ id: k + n, name: `${k === 'S' ? '銷項' : '進項'}${inv}-${TAX_TYPE_NAME[type]}`, taxType: type, rate }))),
