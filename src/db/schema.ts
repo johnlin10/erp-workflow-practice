@@ -29,7 +29,7 @@ export const PermSet = z.object({
   lines: z.array(PermLine),
 })
 export const Plant = z.object({ id: str, name: str })
-export const Warehouse = z.object({ id: str, name: str, plant: str })
+export const Warehouse = z.object({ id: str, name: str, plant: str, kind: str.default('1') }) // kind 庫存性質：1 存貨倉、2 非存貨倉
 export const DocType = z.object({ id: str, name: str, kind: DocKind })
 export const Employee = z.object({ id: str, name: str, dept: str })
 export const Currency = z.object({ id: str, name: str, rate: num })
@@ -40,7 +40,7 @@ export const Item = z.object({
   id: str, name: str, spec: str, unit: str,
   mainWarehouse: str, mainSupplier: str, leadDays: num,
   price: num, cost: num, remark: str,
-  acct: str.default(''), // 會計類別（舊資料沒有這欄）
+  acct: str.default('01'), // 會計（品號類別代號，見 ITEM_CATS）
   lastCost: num.default(0), retail: num.default(0), floorPrice: num.default(0), // 最近進價（進貨確認時更新）、零售價、業務底價
   ext,
 })

@@ -1,7 +1,7 @@
 import type { DB, Item, Supplier, Customer } from './schema'
 
 // 預設資料：依課堂截圖建立。截圖看不到的值（單價、主供應商、庫別名稱）是推測的。
-const item = (id: string, name: string, spec: string, unit: string, mainSupplier: string, price: number, cost: number, mainWarehouse = 'P003', acct = '1'): Item =>
+const item = (id: string, name: string, spec: string, unit: string, mainSupplier: string, price: number, cost: number, mainWarehouse = 'P003', acct = '05'): Item =>
   ({ id, name, spec, unit, mainWarehouse, mainSupplier, leadDays: 7, price, cost, remark: '', acct, lastCost: 0, retail: 0, floorPrice: 0, ext: {} })
 
 const sup = (id: string, short: string, tel = '', contact = '', taxId = '', name = short): Supplier =>
@@ -11,6 +11,10 @@ const cust = (id: string, short: string, name: string, creditLimit: number, more
   id, short, name, enName: '', owner: '', contact: '', tel: '', fax: '', email: '', taxId: '',
   currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '201', dept: '', creditLimit, address: '', ext: {}, ...more,
 })
+
+// 品號類別（INVI02 的「會計」欄）與庫別清單取自同學的專案 tailing-cloud/workflow-erp-conductor（MIT 授權），他依課堂截圖整理
+export const ITEM_CATS: [string, string][] = [['01', '原料'], ['02', '物料'], ['03', '半成品'], ['04', '成品'], ['05', '商品']]
+const wh = (id: string, name: string, plant: string, kind = '1') => ({ id, name, plant, kind })
 
 const TAX_TYPE_NAME: Record<string, string> = { 1: '應稅內含', 2: '應稅外加', 3: '零稅', 4: '免稅', 9: '不計稅' }
 const TAX_KINDS: [string, string, string, number][] = [
@@ -32,10 +36,10 @@ export function seed(): DB {
     perms: [{ userId: 'admin', group: '', dept: '', remark: '預設超級使用者', superuser: true, lines: [] }],
     plants: [{ id: 'TP01', name: '製造一廠' }, { id: 'TY01', name: '製造二廠' }],
     warehouses: [
-      { id: 'P001', name: '原料倉', plant: 'TP01' },
-      { id: 'P002', name: '半成品倉', plant: 'TP01' },
-      { id: 'P003', name: '成品倉', plant: 'TP01' },
-      { id: 'Y001', name: '二廠倉', plant: 'TY01' },
+      wh('HUB', '在途倉', 'TP01'), wh('P001', '原料倉一', 'TP01'), wh('P002', '半成品倉一', 'TP01'), wh('P003', '成品倉一', 'TP01'),
+      wh('P004', '不良品倉一', 'TP01'), wh('P005', '報廢倉一', 'TP01', '2'), wh('P006', '借出暫存倉', 'TP01'), wh('P007', '借入暫存倉', 'TP01'),
+      wh('P009', '事務品倉一', 'TP01'), wh('Y001', '原料倉二', 'TY01'), wh('Y002', '半成品倉二', 'TY01'), wh('Y003', '成品倉二', 'TY01'),
+      wh('Y004', '不良品倉二', 'TY01'), wh('Y005', '報廢倉二', 'TY01', '2'), wh('Y009', '事務品倉二', 'TY01'),
     ],
     docTypes: [
       { id: 'C211', name: '配銷報價單', kind: 'quote' },
@@ -62,14 +66,14 @@ export function seed(): DB {
       item('610002', '數位相機-專業型', 'PF1002', '台', '1007', 25000, 18000),
       item('610003', '數位相機-類單眼SX740型', '40倍光學對焦+內建WIFI 4K UHD', '台', '1007', 15000, 11000),
       item('900004', '相機外掛麥克風組', '通用', '組', '1202', 1200, 700),
-      item('0307-01', '主機外殼', '黑色', '個', '1009', 300, 150),
+      item('0307-01', '主機外殼', '黑色', '個', '1009', 300, 150, 'P001', '01'),
       // 以下品號取自同學的專案（見下方廠商資料的註解）；主供應商原資料沒有，W01 主原料庫對應到 P001
       item('410004', '數位相機-專業型', 'SL系列', '台', '', 15000, 12000, 'P003', '05'),
-      item('800001', 'AI 智能磁吸補光燈', '雙色溫高顯色補光配件', '個', '', 990, 650, 'P001', '1201'),
-      item('800002', '多功能手持延長自拍桿', '內建三腳架 1/4螺孔', '支', '', 750, 450, 'P001', '1201'),
-      item('900001', '三腳架', '輕量鋁合金可折疊', 'set', '', 1200, 800, 'P003', '1201'),
-      item('900002', '充電器', '雙插槽智能快充座', 'ea', '', 990, 650, 'P003', '1201'),
-      item('900003', '拭鏡布-防靜電', '超細纖維抗靜電擦拭布', 'pcs', '', 100, 50, 'P003', '1201'),
+      item('800001', 'AI 智能磁吸補光燈', '雙色溫高顯色補光配件', '個', '', 990, 650, 'P001', '05'),
+      item('800002', '多功能手持延長自拍桿', '內建三腳架 1/4螺孔', '支', '', 750, 450, 'P001', '05'),
+      item('900001', '三腳架', '輕量鋁合金可折疊', 'set', '', 1200, 800, 'P003', '05'),
+      item('900002', '充電器', '雙插槽智能快充座', 'ea', '', 990, 650, 'P003', '05'),
+      item('900003', '拭鏡布-防靜電', '超細纖維抗靜電擦拭布', 'pcs', '', 100, 50, 'P003', '05'),
       item('900006', 'Insta360 Flow 2 Pro / Flow 2', '全功能 AI 三軸手機穩定器', '台', '', 5500, 4200, 'P003', '05'),
     ],
     customers: [

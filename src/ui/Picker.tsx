@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { DB } from '../db/schema'
+import { ITEM_CATS } from '../db/seed'
 import { stockOf } from '../domain/stock'
 import { Icon } from './icons'
 
@@ -68,6 +69,7 @@ export function Picker({ def, db, rec, onPick, onClose }: { def: PickDef; db: DB
 }
 
 // ---------- 常用開窗 ----------
+export const WH_KIND: Record<string, string> = { 1: '1:存貨倉', 2: '2:非存貨倉' }
 const name = <T extends { id: string }>(arr: T[], id: string, f: (x: T) => string) => { const x = arr.find(a => a.id === id); return x ? f(x) : '' }
 
 export const PK = {
@@ -76,7 +78,8 @@ export const PK = {
   item: { icon: 'pick', cols: [['品號', r => r.id], ['品名', r => r.name], ['規格', r => r.spec], ['單位', r => r.unit], ['主要庫別', r => r.mainWarehouse]], rows: db => db.items, val: r => r.id } as PickDef,
   employee: { icon: 'person', cols: [['人員代號', r => r.id], ['人員名稱', r => r.name], ['部門', r => r.dept]], rows: db => db.employees, val: r => r.id } as PickDef,
   plant: { icon: 'plant', cols: [['廠別代號', r => r.id], ['廠別名稱', r => r.name]], rows: db => db.plants, val: r => r.id } as PickDef,
-  warehouse: { icon: 'plant', cols: [['庫別代號', r => r.id], ['庫別名稱', r => r.name], ['廠別', r => r.plant]], rows: db => db.warehouses, val: r => r.id } as PickDef,
+  warehouse: { icon: 'plant', cols: [['庫別代號', r => r.id], ['庫別名稱', r => r.name], ['廠別代號', r => r.plant], ['庫存性質', r => WH_KIND[r.kind] ?? '']], rows: db => db.warehouses, val: r => r.id } as PickDef,
+  itemCat: { icon: 'pick', cols: [['品號類別代號', r => r.id], ['品號類別名稱', r => r.name]], rows: () => ITEM_CATS.map(([id, name]) => ({ id, name })), val: r => r.id } as PickDef,
   currency: { icon: 'money', cols: [['幣別', r => r.id], ['幣別名稱', r => r.name], ['匯率', r => r.rate]], rows: db => db.currencies, val: r => r.id } as PickDef,
   /** 稅別碼：銷售系統用 S 開頭、採購系統用 P 開頭 */
   tax: (k: string) => ({ icon: 'pick', cols: [['稅別碼', r => r.id], ['名稱', r => r.name], ['課稅別', r => r.taxType], ['營業稅率', r => r.rate]], rows: db => db.taxCodes.filter(t => t.id.startsWith(k)), val: r => r.id }) as PickDef,
@@ -91,6 +94,7 @@ export const names = {
   employee: (db: DB, id: string) => name(db.employees, id, x => x.name),
   plant: (db: DB, id: string) => name(db.plants, id, x => x.name),
   warehouse: (db: DB, id: string) => name(db.warehouses, id, x => x.name),
+  itemCat: (id: string) => ITEM_CATS.find(([c]) => c === id)?.[1] ?? '',
   currency: (db: DB, id: string) => name(db.currencies, id, x => x.name),
   tax: (db: DB, id: string) => name(db.taxCodes, id, x => x.name),
   docType: (db: DB, id: string) => name(db.docTypes, id, x => x.name),

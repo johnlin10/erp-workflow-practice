@@ -7,7 +7,7 @@ import { stockOf } from '../domain/stock'
 import { DocProgram, type DocConfig } from '../ui/DocProgram'
 import { Check, Select } from '../ui/fields'
 import { Icon } from '../ui/icons'
-import { names, PK, type PickDef } from '../ui/Picker'
+import { names, PK, WH_KIND, type PickDef } from '../ui/Picker'
 import { useSession, type ProgProps } from '../ui/session'
 import { PROGRAMS } from './index'
 import { F, ph, roText, TAX_TYPES, X } from './common'
@@ -157,13 +157,13 @@ const permCfg: DocConfig = {
 // ---------- INVI02 品號資料建立作業 ----------
 const itemBase = masterBase('items', 'id', '品號', (db, k) => allDocs(db).some(d => d.lines.some((l: R) => l.item === k)))
 const stockLines = (db: DB, id: string) => db.warehouses.filter(w => stockOf(db, id, w.id) !== 0).map(w => ({
-  warehouse: w.id, whName: w.name, whType: '1.存貨倉', plant: w.plant, plantName: names.plant(db, w.plant), qty: stockOf(db, id, w.id),
+  warehouse: w.id, whName: w.name, whType: WH_KIND[w.kind] ?? '', plant: w.plant, plantName: names.plant(db, w.plant), qty: stockOf(db, id, w.id),
 }))
 const itemCfg: DocConfig = {
   code: 'INVI02',
   ...itemBase,
   records: db => db.items.map(it => ({ ...withExt(it), lines: stockLines(db, it.id) })),
-  blank: () => ({ id: '', name: '', spec: '', unit: '', mainWarehouse: '', mainSupplier: '', leadDays: 0, price: 0, cost: 0, remark: '', acct: '', lastCost: 0, retail: 0, floorPrice: 0, ext: {} }),
+  blank: () => ({ id: '', name: '', spec: '', unit: '', mainWarehouse: '', mainSupplier: '', leadDays: 0, price: 0, cost: 0, remark: '', acct: '01', lastCost: 0, retail: 0, floorPrice: 0, ext: {} }),
   header: [
     [{ k: 'id', label: '品號', pk: true, w: 210, pick: PK.item }, roText('版次', '', 46), { k: 'unit', label: '單位', req: true, w: 52 }, { k: '_stock', label: '庫存數量', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) : 0) }],
     [{ k: 'name', label: '品名', w: 236 }, null, roText('小單位', '', 52), { k: '_stockAmt', label: '庫存金額', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) * r.cost : 0) }],
@@ -174,14 +174,14 @@ const itemCfg: DocConfig = {
   tabs: [
     { label: '基本資料1', rows: [
       [{ k: '_editName', label: '修改品名規格', t: 'check', ro: true }, null],
-      [{ k: 'acct', label: '會計', req: true, w: 80 }, roText('採購單位', '', 70)],
+      [{ k: 'acct', label: '會計', req: true, w: 80, pick: PK.itemCat, name: (_db, r) => names.itemCat(r.acct) }, roText('採購單位', '', 70)],
       [roText('資材', '', 80), roText('銷售單位', '', 70)],
       [roText('業務', '', 80), roText('文管代號', '', 130)],
       [roText('生管', '', 80), roText('稅則', '', 210)],
       [{ k: 'mainWarehouse', label: '主要庫別', pick: PK.warehouse, w: 80, name: (db, r) => names.warehouse(db, r.mainWarehouse) }, roText('保固估售價比率', '. %', 70)],
-      [roText('主要領料庫別', '', 80), roText('保固期數(月數)', '', 60)],
+      [X('主要領料庫別', 80, { pick: PK.warehouse }), roText('保固期數(月數)', '', 60)],
       [roText('生產線別', '', 80), null],
-      [roText('計劃人員', '', 80), roText('產品追溯系統串接碼', '', 340)],
+      [X('計劃人員', 80, { pick: PK.employee }), roText('產品追溯系統串接碼', '', 340)],
       [{ k: '_einv', label: '電子發票須上傳產品追溯串接碼', t: 'check', ro: true }, null],
     ] },
     ph('基本資料2'), ph('基本資料3'),
@@ -214,7 +214,7 @@ const itemCfg: DocConfig = {
   save: (d, r, isNew, user) => {
     if (!r.name.trim()) fail('請輸入品名')
     if (!r.unit.trim()) fail('請輸入單位')
-    if (!r.acct.trim()) fail('請輸入會計類別')
+    if (!names.itemCat(r.acct)) fail('請輸入正確的會計（品號類別代號 01～05）')
     delete r.lines
     if (r.mainWarehouse && !d.warehouses.some(w => w.id === r.mainWarehouse)) fail('主要庫別不存在')
     if (r.mainSupplier && !d.suppliers.some(s => s.id === r.mainSupplier)) fail('主供應商不存在')

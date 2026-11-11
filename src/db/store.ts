@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { DB as DBSchema, type DB } from './schema'
-import { seed } from './seed'
+import { ITEM_CATS, seed } from './seed'
 
 const KEY = 'erp-workflow-practice:v1'
 let loadProblem = ''
@@ -17,10 +17,12 @@ function load(): DB {
     if (r.success) {
       // 預設資料後來新增的廠商、客戶、品號，補進舊的練習資料裡（已有的代號不動）
       const base = seed()
-      for (const k of ['suppliers', 'customers', 'items'] as const) {
+      for (const k of ['suppliers', 'customers', 'items', 'warehouses'] as const) {
         const have = new Set(r.data[k].map(x => x.id))
         ;(r.data[k] as { id: string }[]).push(...base[k].filter(x => !have.has(x.id)))
       }
+      // 會計（品號類別）早期存的是不存在的代號，改成 05 商品
+      for (const it of r.data.items) if (!ITEM_CATS.some(([c]) => c === it.acct)) it.acct = '05'
       r.data.taxCodes = base.taxCodes // 稅別碼是固定的參考資料，練習版不能修改，直接換成最新的
       return r.data
     }
