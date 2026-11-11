@@ -34,7 +34,7 @@ select.fld.ro:disabled { background: var(--ro); }
 .fld-icon:hover:not(:disabled) { border-color: var(--line); background: #fff; }
 .cal-gap { display: inline-block; width: 22px; }
 .hidden-date { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.fname { margin-left: 4px; white-space: nowrap; color: #222; }
+.fname { margin: 0 12px 0 4px; white-space: nowrap; color: #222; }
 .chk { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 .chk.ro { color: #555; }
 select.fld { padding: 0 2px; }
