@@ -23,6 +23,9 @@ function load(): DB {
       }
       // 會計（品號類別）早期存的是不存在的代號，改成 05 商品
       for (const it of r.data.items) if (!ITEM_CATS.some(([c]) => c === it.acct)) it.acct = '05'
+      // 員工改用課堂的 16 筆；舊資料的業務人員代號已不存在時改成 1001
+      r.data.employees = base.employees
+      for (const c of r.data.customers) if (!base.employees.some(e => e.id === c.sales)) c.sales = '1001'
       r.data.taxCodes = base.taxCodes // 稅別碼是固定的參考資料，練習版不能修改，直接換成最新的
       return r.data
     }

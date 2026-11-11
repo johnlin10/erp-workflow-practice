@@ -181,7 +181,7 @@ const itemCfg: DocConfig = {
       [{ k: 'mainWarehouse', label: '主要庫別', pick: PK.warehouse, w: 80, name: (db, r) => names.warehouse(db, r.mainWarehouse) }, roText('保固估售價比率', '. %', 70)],
       [X('主要領料庫別', 80, { pick: PK.warehouse }), roText('保固期數(月數)', '', 60)],
       [roText('生產線別', '', 80), null],
-      [X('計劃人員', 80, { pick: PK.employee }), roText('產品追溯系統串接碼', '', 340)],
+      [X('計劃人員', 80, { pick: PK.employee, name: (db, r) => names.employee(db, r['_計劃人員']) }), roText('產品追溯系統串接碼', '', 340)],
       [{ k: '_einv', label: '電子發票須上傳產品追溯串接碼', t: 'check', ro: true }, null],
     ] },
     ph('基本資料2'), ph('基本資料3'),

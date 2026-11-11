@@ -9,7 +9,7 @@ const sup = (id: string, short: string, tel = '', contact = '', taxId = '', name
 
 const cust = (id: string, short: string, name: string, creditLimit: number, more: Partial<Customer> = {}): Customer => ({
   id, short, name, enName: '', owner: '', contact: '', tel: '', fax: '', email: '', taxId: '',
-  currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '201', dept: '', creditLimit, address: '', ext: {}, ...more,
+  currency: 'NTD', taxCode: 'S02', payTerm: '', sales: '1001', dept: '', creditLimit, address: '', ext: {}, ...more,
 })
 
 // 品號類別（INVI02 的「會計」欄）與庫別清單取自同學的專案 tailing-cloud/workflow-erp-conductor（MIT 授權），他依課堂截圖整理
@@ -50,11 +50,24 @@ export function seed(): DB {
       { id: 'A341', name: '國內進貨單', kind: 'receipt' },
       { id: 'A231', name: '銷貨單', kind: 'sale' },
     ],
+    // 員工 16 筆（代號、姓名、部門代號），取自同學的專案（他依課堂截圖整理）
     employees: [
-      { id: '1001', name: '林小明', dept: '採購部' },
-      { id: '145', name: '陳志強', dept: '採購部' },
-      { id: '403', name: '王美玲', dept: '採購部' },
-      { id: '201', name: '張家豪', dept: '業務部' },
+      { id: '1001', name: '張明達(業務)', dept: '1000' },
+      { id: '112', name: '翁湘琴', dept: '0200' },
+      { id: '138', name: '林子泉', dept: '1000' },
+      { id: '145', name: '黃聖凱', dept: '1000' },
+      { id: '213', name: '王小明', dept: '6000' },
+      { id: '238', name: '李玉郎', dept: '1000' },
+      { id: '3001', name: '王乾坤', dept: '1000' },
+      { id: '301', name: '林慶安', dept: '1000' },
+      { id: '310', name: '黃小玲', dept: '1000' },
+      { id: '322', name: '郭宏源', dept: '1000' },
+      { id: '334', name: '王效東', dept: '1000' },
+      { id: '389', name: '劉碧玲', dept: '1000' },
+      { id: '395', name: '洪郎雄', dept: '1000' },
+      { id: '401', name: '賈彩玲', dept: '1000' },
+      { id: '402', name: '曾美玲', dept: '1000' },
+      { id: '403', name: '蔡佳伶', dept: '1000' },
     ],
     currencies: [{ id: 'NTD', name: '台幣', rate: 1 }],
     // 稅別碼：銷售用 S、採購用 P，依發票聯式分組。清單取自同學的專案（見下方廠商資料的註解）

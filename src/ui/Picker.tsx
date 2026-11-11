@@ -76,7 +76,7 @@ export const PK = {
   customer: { icon: 'customer', cols: [['客戶代號', r => r.id], ['簡稱', r => r.short], ['電話', r => r.tel], ['聯絡人', r => r.contact], ['統一編號', r => r.taxId], ['公司全名', r => r.name]], rows: db => db.customers, val: r => r.id } as PickDef,
   supplier: { icon: 'supplier', cols: [['廠商代號', r => r.id], ['簡稱', r => r.short], ['電話(一)', r => r.tel], ['聯絡人', r => r.contact], ['統一編號', r => r.taxId], ['公司全名', r => r.name]], rows: db => db.suppliers, val: r => r.id } as PickDef,
   item: { icon: 'pick', cols: [['品號', r => r.id], ['品名', r => r.name], ['規格', r => r.spec], ['單位', r => r.unit], ['主要庫別', r => r.mainWarehouse]], rows: db => db.items, val: r => r.id } as PickDef,
-  employee: { icon: 'person', cols: [['人員代號', r => r.id], ['人員名稱', r => r.name], ['部門', r => r.dept]], rows: db => db.employees, val: r => r.id } as PickDef,
+  employee: { icon: 'person', cols: [['員工代號', r => r.id], ['員工姓名', r => r.name], ['部門代號', r => r.dept]], rows: db => db.employees, val: r => r.id } as PickDef,
   plant: { icon: 'plant', cols: [['廠別代號', r => r.id], ['廠別名稱', r => r.name]], rows: db => db.plants, val: r => r.id } as PickDef,
   warehouse: { icon: 'plant', cols: [['庫別代號', r => r.id], ['庫別名稱', r => r.name], ['廠別代號', r => r.plant], ['庫存性質', r => WH_KIND[r.kind] ?? '']], rows: db => db.warehouses, val: r => r.id } as PickDef,
   itemCat: { icon: 'pick', cols: [['品號類別代號', r => r.id], ['品號類別名稱', r => r.name]], rows: () => ITEM_CATS.map(([id, name]) => ({ id, name })), val: r => r.id } as PickDef,
