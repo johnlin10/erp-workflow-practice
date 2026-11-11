@@ -74,6 +74,8 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
       <Icon n={progIcon(p.kind)} size={16} />{p.name}
     </div>
   )
+  // 資料夾裡（含子資料夾）有沒有練習版提供的作業；沒有的話資料夾顯示為淡色
+  const hasProg = (n: TNode): boolean => n.children ? n.children.some(hasProg) : !!n.code && PROGRAMS.some(p => p.code === n.code)
   // 程式樹：資料夾點一下展開，作業雙擊開啟；點系統會切換右邊的流程圖
   const node = (n: TNode, path: string): React.ReactNode => {
     const k = path ? `${path}/${n.name}` : n.name
@@ -90,7 +92,7 @@ export function Shell({ user, onLogout }: { user: string; onLogout: () => void }
     const isOpen = openNodes.has(k)
     return (
       <div key={k}>
-        <div className={`tree-item ${n.sys && sys === n.sys ? 'sel' : ''}`} onClick={() => { toggle(k); if (n.sys) setSys(n.sys) }}>
+        <div className={`tree-item ${n.sys && sys === n.sys ? 'sel' : ''} ${hasProg(n) ? '' : 'na'}`} title={hasProg(n) ? undefined : '此資料夾沒有練習版提供的作業'} onClick={() => { toggle(k); if (n.sys) setSys(n.sys) }}>
           <span className="twisty">{n.children.length || n.sys !== undefined ? (isOpen ? '⌄' : '›') : ''}</span>
           <Icon n={path ? (isOpen ? 'folderOpen' : 'folder') : 'tree'} size={16} />{n.name}
         </div>

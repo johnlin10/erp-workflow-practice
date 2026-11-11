@@ -84,6 +84,8 @@ select.fld { padding: 0 2px; }
 .tree-item:hover { background: #e5eefb; }
 .tree-item.sel { background: var(--blue2); }
 .tree-item.leaf { padding-left: 16px; }
+.tree-item.na { color: #9a9a9a; } /* 練習版沒有的作業，或資料夾裡沒有可用作業 */
+.tree-item.na svg { opacity: .45; }
 .tree { font-family: var(--ming); font-size: 16px; }
 .tree-item.leaf:focus { outline: 1px dotted #000; background: var(--blue2); }
 .tree-indent { padding-left: 14px; }
