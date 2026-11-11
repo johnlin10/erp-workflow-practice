@@ -28,7 +28,7 @@ export function seed(): DB {
   return {
     schemaVersion: 1,
     company: '學生區',
-    users: [{ id: 'admin', name: '系統管理員', email: '', password: 'admin', locked: false, expiry: '', companies: '學生區' }],
+    users: [{ id: 'admin', name: '系統管理員', email: '', password: '', locked: false, expiry: '', companies: '學生區' }],
     perms: [{ userId: 'admin', group: '', dept: '', remark: '預設超級使用者', superuser: true, lines: [] }],
     plants: [{ id: 'TP01', name: '製造一廠' }, { id: 'TY01', name: '製造二廠' }],
     warehouses: [

@@ -43,7 +43,7 @@ function Login({ onLogin }: { onLogin: (u: string) => void }) {
           <label>登入者代號<input autoFocus value={id} onChange={e => setId(e.target.value)} autoComplete="username" /></label>
           <label>密碼<input type="password" value={pw} onChange={e => setPw(e.target.value)} autoComplete="current-password" /></label>
           <div className="login-hint">
-            預設帳號：admin　密碼：admin<br />
+            預設帳號：admin　密碼：（空白）<br />
             這是練習用的登入，密碼以明碼存在瀏覽器中，<b>請勿使用真實密碼</b>。
           </div>
         </div>
