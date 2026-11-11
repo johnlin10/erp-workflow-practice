@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DB as DBSchema } from '../db/schema'
 import { seed } from '../db/seed'
-import { blankOrder, blankQuote, blankReceipt, blankSale } from './blank'
+import { blankOrder, blankQuote, blankReceipt, blankSale, nextItemNo } from './blank'
 import {
   confirmDoc, confirmOrderChange, deleteDoc, maintainReqLine, newOrderChange, orderToSale, purchaseToReceipt,
   quoteToOrder, saveDoc, saveOrderChange, unconfirmDoc, changeKey,
@@ -109,4 +109,13 @@ describe('考試流程：報價 → 訂單 → 變更 → 轉請購 → 採購 �
     // 整份資料仍然符合 schema
     expect(DBSchema.safeParse(db).success).toBe(true)
   })
+})
+
+it('新品號流水號從 900001 起，取最大值 +1', () => {
+  const db = DBSchema.parse(seed())
+  expect(nextItemNo(db)).toBe('900007') // 預設資料已有 900001～900006
+  db.items.push({ ...db.items[0], id: '900020' })
+  expect(nextItemNo(db)).toBe('900021')
+  db.items = db.items.filter(i => !i.id.startsWith('9'))
+  expect(nextItemNo(db)).toBe('900001')
 })

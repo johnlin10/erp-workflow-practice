@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react'
 import type { DB } from '../db/schema'
+import { nextItemNo } from '../domain/blank'
 import { useDb } from '../db/store'
 import { fail } from '../domain/docs'
 import { stockOf } from '../domain/stock'
@@ -163,7 +164,8 @@ const itemCfg: DocConfig = {
   code: 'INVI02',
   ...itemBase,
   records: db => db.items.map(it => ({ ...withExt(it), lines: stockLines(db, it.id) })),
-  blank: () => ({ id: '', name: '', spec: '', unit: '', mainWarehouse: '', mainSupplier: '', leadDays: 0, price: 0, cost: 0, remark: '', acct: '01', lastCost: 0, retail: 0, floorPrice: 0, ext: {} }),
+  // 新增時品號自動帶下一個流水號（9 開頭 6 碼，從 900001 起），仍可自行修改；做法參考同學的專案
+  blank: db => ({ id: nextItemNo(db), name: '', spec: '', unit: '', mainWarehouse: '', mainSupplier: '', leadDays: 0, price: 0, cost: 0, remark: '', acct: '01', lastCost: 0, retail: 0, floorPrice: 0, ext: {} }),
   header: [
     [{ k: 'id', label: '品號', pk: true, w: 210, pick: PK.item }, roText('版次', '', 46), { k: 'unit', label: '單位', req: true, w: 52 }, { k: '_stock', label: '庫存數量', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) : 0) }],
     [{ k: 'name', label: '品名', w: 236 }, null, roText('小單位', '', 52), { k: '_stockAmt', label: '庫存金額', t: 'ro', w: 150, show: (r, db) => (r.id ? stockOf(db, r.id) * r.cost : 0) }],

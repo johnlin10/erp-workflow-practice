@@ -35,3 +35,7 @@ export const blankReceipt = (db: DB, date: string): Receipt => ({
 export const blankSale = (db: DB, date: string): Sale => ({
   ...base(db, 'sale', date), ...money(db), customer: '', plant: firstPlant(db), dept: '', sales: '', saleDate: date, lines: [],
 })
+
+/** 新品號的流水號：9 開頭 6 碼，取現有最大值 +1，從 900001 起（參考同學的專案） */
+export const nextItemNo = (db: DB) =>
+  String(Math.max(900000, ...db.items.filter(i => /^9\d{5}$/.test(i.id)).map(i => +i.id)) + 1)
